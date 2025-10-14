@@ -7,7 +7,6 @@ from __future__ import annotations
 from typing import List, Dict, Any, Optional
 import logging
 import hashlib
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ class VectorStore:
         doc_ids = []
         for doc in documents:
             content = doc["content"]
-            metadata = doc.get("metadata", {})
+            # metadata = doc.get("metadata", {})  # TODO: Use metadata when implementing full functionality
             
             # Generate content hash for deduplication
             content_hash = self._calculate_hash(content)

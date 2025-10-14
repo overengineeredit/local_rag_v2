@@ -4,7 +4,7 @@ Handles model loading, configuration, and token streaming.
 """
 from __future__ import annotations
 
-from typing import Iterator, Optional
+from typing import Iterator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class LLMInterface:
             Generated tokens
         """
         # TODO: Implement token generation
-        full_prompt = self._build_prompt(prompt, context)
+        # full_prompt = self._build_prompt(prompt, context)
         
         # Placeholder implementation
         response = f"(LLM placeholder) Query: {prompt}\nContext: {context[:100]}..."

@@ -4,7 +4,7 @@ Handles text files, HTML, URLs with deduplication and metadata extraction.
 """
 from __future__ import annotations
 
-from typing import List, Dict, Any, Iterator
+from typing import List, Dict, Any
 import logging
 from pathlib import Path
 import hashlib
