@@ -16,10 +16,4 @@ from .vector_store import VectorStore
 from .content_manager import ContentManager
 from .cli import LocalRAGCLI
 
-__all__ = [
-    "create_app",
-    "LLMInterface", 
-    "VectorStore",
-    "ContentManager",
-    "LocalRAGCLI"
-]
+__all__ = ["create_app", "LLMInterface", "VectorStore", "ContentManager", "LocalRAGCLI"]

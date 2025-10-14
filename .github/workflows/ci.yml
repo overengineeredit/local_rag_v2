@@ -17,21 +17,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install ruff
+          pip install ruff pytest pytest-mock
       - name: Lint
         run: ruff check src/
       - name: Test
-        run: |
-          # Create basic test structure if it doesn't exist
-          mkdir -p tests
-          if [ ! -f "tests/test_basic.py" ]; then
-            echo "# Basic test to ensure imports work" > tests/test_basic.py
-            echo "def test_imports():" >> tests/test_basic.py
-            echo "    import src.guide.cli" >> tests/test_basic.py
-            echo "    import src.guide.web_interface" >> tests/test_basic.py
-            echo "    import src.guide.content_manager" >> tests/test_basic.py
-            echo "    import src.guide.llm_interface" >> tests/test_basic.py
-            echo "    import src.guide.vector_store" >> tests/test_basic.py
-            echo "    assert True" >> tests/test_basic.py
-          fi
-          pytest tests/ -q
+        run: pytest tests/ -v
