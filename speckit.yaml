@@ -1,0 +1,91 @@
+# SpecKit-compliant project manifest
+metadata:
+  version: "1.0.0"
+  created: "2025-10-12"
+  updated: "2025-10-12"
+  
+project:
+  name: Local-RAG-Edge-LLM
+  description: "CPU-first RAG system for privacy-focused local inference on Pi5/AMD64"
+  owners:
+    - name: Peenak Inamdar
+      role: Product/Engineering
+      email: peenaki@example.com
+  language: python
+  runtime: "Python 3.11+"
+  
+  # Core project goals and constraints
+  goals:
+    - Portable, offline RAG system with local LLM inference
+    - Cross-platform support (Pi5 ARM64, AMD64)
+    - CPU-first approach with llama-cpp-python
+    - Single-command APT package installation
+    - Privacy-first design with no cloud dependencies
+    
+  non_goals:
+    - Cloud inference or remote model hosting
+    - Hardware-specific acceleration (NPU/GPU) in v1
+    - Multi-user or enterprise authentication
+    - Real-time collaboration features
+    - Container-based deployment
+
+# Project constitution and governance
+constitution: CONSTITUTION.md
+
+# Documentation structure (SpecKit-compliant)
+docs:
+  problem: specs/01_problem.md
+  requirements: specs/02_requirements.md
+  design: specs/03_design.md
+  milestones: specs/04_milestones.md
+  risks: specs/05_risks.md
+  configuration: specs/06_configuration.md
+  content_strategy: specs/07_content_strategy.md
+  testing_strategy: specs/08_testing_strategy.md
+  deployment: specs/09_deployment.md
+  architecture_decisions: specs/10_architecture_decisions.md
+
+# Task management
+tasks: TASKS.md
+
+# Development workflow
+ci:
+  lint: "ruff check ."
+  test: "pytest -q"
+  coverage: "pytest --cov=src/guide --cov-report=term-missing"
+  
+# Target environments
+environments:
+  development:
+    description: "Local development with Python virtual environment"
+    setup: "python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
+    
+  production:
+    description: "Raspberry Pi 5 or AMD64 Linux with APT package"
+    setup: "sudo apt install ./local-rag_1.0.0_arm64.deb"
+
+# Technology stack
+tech_stack:
+  backend: "FastAPI + uvicorn"
+  llm: "llama-cpp-python with GGUF models"
+  vector_db: "ChromaDB (embedded SQLite)"
+  embedding: "sentence-transformers (all-MiniLM-L6-v2)"
+  packaging: "Debian APT packages"
+  service_management: "systemd"
+  
+# Quality gates and acceptance criteria  
+quality:
+  performance:
+    pi5_cold_start: "3-5 minutes for first token"
+    pi5_warm_query: "1-3 minutes for first token"
+    amd64_reference: "sub-second to 30 seconds"
+  
+  resource_limits:
+    ram_minimum: "6GB (Pi5)"
+    ram_recommended: "8GB"
+    storage_minimum: "32GB total (8GB app + 4GB model + 20GB content)"
+    
+  reliability:
+    uptime_target: "99%+ during normal operation"
+    installation_time: "under 5 minutes on clean Pi5"
+    test_coverage: ">85% for core modules"

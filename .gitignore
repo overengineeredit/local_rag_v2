@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+*.DS_Store
+dist/
+build/
+.coverage
+htmlcov/
+*.hef
+models/
