@@ -7,11 +7,8 @@ from __future__ import annotations
 import sys
 import argparse
 import httpx
-import json
-from typing import Dict, Any
 from rich.console import Console
 from rich.table import Table
-from rich import print as rprint
 
 console = Console()
 
@@ -94,7 +91,7 @@ class LocalRAGCLI:
             try:
                 error_detail = e.response.json().get('detail', 'Unknown error')
                 console.print(f"Error: {error_detail}")
-            except:
+            except Exception:
                 console.print(f"Response: {e.response.text}")
             sys.exit(1)
     

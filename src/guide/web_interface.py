@@ -11,7 +11,6 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 
 from .llm_interface import LLMInterface
-from .vector_store import VectorStore
 from .content_manager import ContentManager
 
 logger = logging.getLogger(__name__)
