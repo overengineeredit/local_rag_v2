@@ -33,11 +33,11 @@ jobs:
 
       - name: Run linting checks
         run: |
-          ruff check src/
+          ruff check .
 
       - name: Check code formatting
         run: |
-          ruff format --check src/
+          ruff format --check .
 
       - name: Run type checking
         run: |
