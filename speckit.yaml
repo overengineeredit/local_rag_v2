@@ -70,7 +70,7 @@ tech_stack:
   backend: "FastAPI + uvicorn"
   llm: "llama-cpp-python with GGUF models"
   vector_db: "ChromaDB (embedded SQLite)"
-  embedding: "sentence-transformers (all-MiniLM-L6-v2)"
+  embedding: "ChromaDB DefaultEmbeddingFunction"
   packaging: "Debian APT packages"
   service_management: "systemd"
   

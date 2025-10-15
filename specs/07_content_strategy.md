@@ -20,7 +20,7 @@
 2. **Normalization**: Strip whitespace, normalize encoding (UTF-8)
 3. **Metadata Extraction**: Title, source, date, content hash (SHA256)
 4. **Chunking**: Split into 512-token chunks with 50-token overlap
-5. **Vectorization**: Generate embeddings using sentence-transformers (all-MiniLM-L6-v2)
+5. **Vectorization**: Generate embeddings using ChromaDB DefaultEmbeddingFunction
 6. **Storage**: Store in ChromaDB with metadata and vector
 
 ## Deduplication Rules
