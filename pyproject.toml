@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "local-rag-v2"
 version = "0.1.0"
 description = "Local RAG system with FastAPI backend"
-authors = [{name = "Peenak Inamdar", email = "peenaki@example.com"}]
+authors = [{name = "Peenak Inamdar", email = "peenaki@bluequack.com"}]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -14,7 +14,6 @@ dependencies = [
     "uvicorn[standard]==0.24.0",
     "chromadb==0.4.18",
     "llama-cpp-python==0.2.20",
-    "sentence-transformers==2.2.2",
     "rich==13.9.2",
     "numpy==2.0.2",
     "pydantic==2.5.0",
