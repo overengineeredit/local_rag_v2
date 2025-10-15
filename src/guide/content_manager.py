@@ -5,11 +5,11 @@ Handles text files, HTML, URLs with deduplication and metadata extraction.
 
 from __future__ import annotations
 
-from typing import List, Dict, Any
-import logging
-from pathlib import Path
 import hashlib
+import logging
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class ContentManager:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
-    def ingest_file(self, file_path: str) -> List[Dict[str, Any]]:
+    def ingest_file(self, file_path: str) -> list[dict[str, Any]]:
         """Ingest a single file and return processed documents.
 
         Args:
@@ -62,7 +62,7 @@ class ContentManager:
             logger.error(f"Error processing {file_path}: {e}")
             return []
 
-    def ingest_directory(self, directory_path: str, recursive: bool = True) -> List[Dict[str, Any]]:
+    def ingest_directory(self, directory_path: str, recursive: bool = True) -> list[dict[str, Any]]:
         """Ingest all supported files from a directory.
 
         Args:
@@ -90,7 +90,7 @@ class ContentManager:
         logger.info(f"Processed directory {path.name}: {len(all_documents)} total documents")
         return all_documents
 
-    def ingest_url(self, url: str) -> List[Dict[str, Any]]:
+    def ingest_url(self, url: str) -> list[dict[str, Any]]:
         """Ingest content from a URL.
 
         Args:
@@ -136,7 +136,7 @@ class ContentManager:
         # Placeholder: just return raw content for now
         return content
 
-    def _extract_metadata(self, path: Path, content: str) -> Dict[str, Any]:
+    def _extract_metadata(self, path: Path, content: str) -> dict[str, Any]:
         """Extract metadata from file and content."""
         # Extract title (first line or filename)
         lines = content.strip().split("\n")
@@ -154,7 +154,7 @@ class ContentManager:
             "content_hash": hashlib.sha256(content.encode("utf-8")).hexdigest(),
         }
 
-    def _chunk_content(self, content: str) -> List[str]:
+    def _chunk_content(self, content: str) -> list[str]:
         """Split content into overlapping chunks."""
         # Simple word-based chunking
         words = content.split()

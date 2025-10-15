@@ -10,10 +10,10 @@ __author__ = "Peenak Inamdar"
 __description__ = "Local Retrieval-Augmented Generation system"
 
 # Main components
-from .main import create_app
-from .llm_interface import LLMInterface
-from .vector_store import VectorStore
-from .content_manager import ContentManager
 from .cli import LocalRAGCLI
+from .content_manager import ContentManager
+from .llm_interface import LLMInterface
+from .main import create_app
+from .vector_store import VectorStore
 
 __all__ = ["create_app", "LLMInterface", "VectorStore", "ContentManager", "LocalRAGCLI"]

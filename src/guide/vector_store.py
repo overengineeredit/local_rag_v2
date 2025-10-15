@@ -5,9 +5,9 @@ Handles embeddings, similarity search, and metadata management.
 
 from __future__ import annotations
 
-from typing import List, Dict, Any, Optional
-import logging
 import hashlib
+import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class VectorStore:
         # self.client = chromadb.PersistentClient(path=self.persist_directory)
         # self.collection = self.client.get_or_create_collection(name=self.collection_name)
 
-    def add_documents(self, documents: List[Dict[str, Any]]) -> List[str]:
+    def add_documents(self, documents: list[dict[str, Any]]) -> list[str]:
         """Add documents to the vector store.
 
         Args:
@@ -49,7 +49,8 @@ class VectorStore:
         doc_ids = []
         for doc in documents:
             content = doc["content"]
-            # metadata = doc.get("metadata", {})  # TODO: Use metadata when implementing full functionality
+            # metadata = doc.get("metadata", {})  # TODO: Use metadata when implementing full
+            # functionality
 
             # Generate content hash for deduplication
             content_hash = self._calculate_hash(content)
@@ -66,7 +67,7 @@ class VectorStore:
 
         return doc_ids
 
-    def search(self, query: str, n_results: int = 5) -> List[Dict[str, Any]]:
+    def search(self, query: str, n_results: int = 5) -> list[dict[str, Any]]:
         """Search for similar documents.
 
         Args:
@@ -88,9 +89,7 @@ class VectorStore:
             }
         ]
 
-    def delete_documents(
-        self, source: Optional[str] = None, doc_ids: Optional[List[str]] = None
-    ) -> int:
+    def delete_documents(self, source: str | None = None, doc_ids: list[str] | None = None) -> int:
         """Delete documents by source or IDs.
 
         Args:

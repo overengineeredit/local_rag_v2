@@ -44,6 +44,7 @@ docs:
   testing_strategy: specs/08_testing_strategy.md
   deployment: specs/09_deployment.md
   architecture_decisions: specs/10_architecture_decisions.md
+  ci_cd_automation: specs/11_ci_cd_automation.md
 
 # Task management
 tasks: TASKS.md
@@ -69,7 +70,7 @@ tech_stack:
   backend: "FastAPI + uvicorn"
   llm: "llama-cpp-python with GGUF models"
   vector_db: "ChromaDB (embedded SQLite)"
-  embedding: "sentence-transformers (all-MiniLM-L6-v2)"
+  embedding: "ChromaDB DefaultEmbeddingFunction"
   packaging: "Debian APT packages"
   service_management: "systemd"
   

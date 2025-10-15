@@ -5,8 +5,9 @@ Provides user-friendly commands that communicate with the FastAPI backend.
 
 from __future__ import annotations
 
-import sys
 import argparse
+import sys
+
 import httpx
 from rich.console import Console
 from rich.table import Table

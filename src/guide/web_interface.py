@@ -6,6 +6,7 @@ Handles query processing, content management, and system administration.
 from __future__ import annotations
 
 import logging
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -49,8 +50,14 @@ def setup_routes(app: FastAPI) -> None:
                 body { font-family: Arial, sans-serif; margin: 40px; }
                 .container { max-width: 800px; margin: 0 auto; }
                 input, textarea { width: 100%; padding: 10px; margin: 10px 0; }
-                button { padding: 10px 20px; background: #007cba; color: white; border: none; cursor: pointer; }
-                .response { background: #f5f5f5; padding: 20px; margin: 20px 0; white-space: pre-wrap; }
+                button {
+                    padding: 10px 20px; background: #007cba; color: white;
+                    border: none; cursor: pointer;
+                }
+                .response {
+                    background: #f5f5f5; padding: 20px; margin: 20px 0;
+                    white-space: pre-wrap;
+                }
             </style>
         </head>
         <body>
@@ -61,7 +68,7 @@ def setup_routes(app: FastAPI) -> None:
                     <button type="submit">Ask Question</button>
                 </form>
                 <div id="response" class="response" style="display: none;"></div>
-                
+
                 <h2>Content Management</h2>
                 <form id="importForm">
                     <input type="text" id="source" placeholder="File path, directory, or URL">
@@ -73,7 +80,7 @@ def setup_routes(app: FastAPI) -> None:
                     <button type="submit">Import Content</button>
                 </form>
             </div>
-            
+
             <script>
                 // Basic JavaScript for form handling (TODO: enhance)
                 document.getElementById('queryForm').onsubmit = async (e) => {
