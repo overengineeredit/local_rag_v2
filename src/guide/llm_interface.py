@@ -5,8 +5,8 @@ Handles model loading, configuration, and token streaming.
 
 from __future__ import annotations
 
-from typing import Iterator
 import logging
+from collections.abc import Iterator
 
 logger = logging.getLogger(__name__)
 
