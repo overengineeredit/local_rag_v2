@@ -23,4 +23,4 @@ jobs:
       - name: Test
         run: pytest -q
       - name: Coverage
-        run: pytest --cov=src/guide --cov-report=term-missing
+        run: pytest --cov=src --cov-report=term-missing
