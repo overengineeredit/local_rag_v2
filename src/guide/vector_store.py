@@ -49,8 +49,7 @@ class VectorStore:
         doc_ids = []
         for doc in documents:
             content = doc["content"]
-            # metadata = doc.get("metadata", {})  # TODO: Use metadata when implementing
-            # full functionality
+            # metadata = doc.get("metadata", {})  # TODO: Use metadata when implementing full functionality
 
             # Generate content hash for deduplication
             content_hash = self._calculate_hash(content)
