@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "local-rag-v2"
 version = "0.1.0"
 description = "Local RAG system with FastAPI backend"
-authors = [{name = "Peenak Inamdar", email = ""}]
+authors = [{name = "Peenak Inamdar", email = "peenaki@example.com"}]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
