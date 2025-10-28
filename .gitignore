@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -183,11 +182,12 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
-#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
-#  you could uncomment the following to ignore the entire vscode folder
-# .vscode/
+#  We keep .vscode/settings.json for SpecKit integration
+#  but exclude user-specific configurations
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/workspace.code-workspace
+.vscode/*.log
 
 # Ruff stuff:
 .ruff_cache/
@@ -206,17 +206,22 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-=======
-.venv/
-__pycache__/
-*.pyc
-*.pyo
-*.log
-*.DS_Store
-dist/
-build/
-.coverage
-htmlcov/
-*.hef
+
+# SpecKit / GitHub Copilot
+# Ignore potential credential files but keep prompt definitions
+# .github/copilot/  # Uncomment if you store credentials here
+.specify/memory/session-*
+.specify/temp/
+.specify/cache/
+
+# Project-specific
+# Models directory for downloaded LLM files
 models/
->>>>>>> local
+*.gguf
+*.bin
+
+# Local data and caches
+data/
+cache/
+logs/
+*.hef
