@@ -1,7 +1,32 @@
-# Implementation Tasks
+# Implementation Tasks (LEGACY)
+
+> **⚠️ NOTICE**: This file contains legacy task tracking. Active task management has moved to the SpecKit structure.  
+> **Current Tasks**: See `specs/001-local-rag-mvp/tasks.md` for the active, up-to-date task breakdown.  
+> **Last Updated**: 2025-10-12  
+> **Status**: ARCHIVED - Replaced by SpecKit user story-based task organization
+
+## Migration Notice
+
+The project has transitioned to a SpecKit-compliant structure with improved task organization:
+
+- **New Task File**: `specs/001-local-rag-mvp/tasks.md`
+- **Organization**: Tasks are now organized by user story for independent delivery
+- **Enhanced Features**: Includes dual hash strategy, change detection, and improved content management
+- **Better Testing**: Comprehensive test coverage with contract, integration, and BDD tests
+
+### Key Improvements in New Task Structure:
+- ✅ User story-based organization for independent development and testing
+- ✅ Enhanced content management with source-aware change detection
+- ✅ Dual hash strategy (source + content) for better deduplication
+- ✅ Update checking without re-import capabilities
+- ✅ Comprehensive API design with OpenAPI specification
+- ✅ Improved CLI with rich terminal interface
+
+---
+
+## Legacy Content (For Historical Reference)
 
 > **Status**: Generated from milestones for SpecKit compliance  
-> **Last Updated**: 2025-10-12  
 > **Current Milestone**: Milestone 1 - Core Infrastructure and MVP
 
 ## Active Tasks (Milestone 1)

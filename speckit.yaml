@@ -2,7 +2,9 @@
 metadata:
   version: "1.0.0"
   created: "2025-10-12"
-  updated: "2025-10-12"
+  updated: "2025-10-29"
+  status: "design_complete"
+  current_feature: "001-local-rag-mvp"
   
 project:
   name: Local-RAG-Edge-LLM
@@ -17,10 +19,13 @@ project:
   # Core project goals and constraints
   goals:
     - Portable, offline RAG system with local LLM inference
+    - Intelligent content management with source-aware change detection
     - Cross-platform support (Pi5 ARM64, AMD64)
     - CPU-first approach with llama-cpp-python
     - Single-command APT package installation
     - Privacy-first design with no cloud dependencies
+    - Efficient update detection using dual hash strategy (source + content)
+    - Cross-source deduplication with metadata preservation
     
   non_goals:
     - Cloud inference or remote model hosting
@@ -30,24 +35,34 @@ project:
     - Container-based deployment
 
 # Project constitution and governance
-constitution: CONSTITUTION.md
+constitution: .specify/memory/constitution.md
 
 # Documentation structure (SpecKit-compliant)
 docs:
-  problem: specs/01_problem.md
-  requirements: specs/02_requirements.md
-  design: specs/03_design.md
-  milestones: specs/04_milestones.md
-  risks: specs/05_risks.md
-  configuration: specs/06_configuration.md
-  content_strategy: specs/07_content_strategy.md
-  testing_strategy: specs/08_testing_strategy.md
-  deployment: specs/09_deployment.md
-  architecture_decisions: specs/10_architecture_decisions.md
-  ci_cd_automation: specs/11_ci_cd_automation.md
+  # Core SpecKit artifacts (current feature)
+  spec: specs/001-local-rag-mvp/spec.md
+  plan: specs/001-local-rag-mvp/plan.md
+  tasks: specs/001-local-rag-mvp/tasks.md
+  research: specs/001-local-rag-mvp/research.md
+  data_model: specs/001-local-rag-mvp/data-model.md
+  quickstart: specs/001-local-rag-mvp/quickstart.md
+  contracts: specs/001-local-rag-mvp/contracts/
+  
+  # Legacy documentation (archived for reference)
+  legacy_problem: specs/01_problem.md
+  legacy_requirements: specs/02_requirements.md
+  legacy_design: specs/03_design.md
+  legacy_milestones: specs/04_milestones.md
+  legacy_risks: specs/05_risks.md
+  legacy_configuration: specs/06_configuration.md
+  legacy_content_strategy: specs/07_content_strategy.md
+  legacy_testing_strategy: specs/08_testing_strategy.md
+  legacy_deployment: specs/09_deployment.md
+  legacy_architecture_decisions: specs/10_architecture_decisions.md
+  legacy_ci_cd_automation: specs/11_ci_cd_automation.md
 
 # Task management
-tasks: TASKS.md
+tasks: specs/001-local-rag-mvp/tasks.md
 
 # Development workflow
 ci:
@@ -71,8 +86,11 @@ tech_stack:
   llm: "llama-cpp-python with GGUF models"
   vector_db: "ChromaDB (embedded SQLite)"
   embedding: "ChromaDB DefaultEmbeddingFunction"
+  content_management: "Dual hash strategy (source + content)"
+  change_detection: "File mtime, HTTP etag/last-modified headers"
   packaging: "Debian APT packages"
   service_management: "systemd"
+  cli: "Rich terminal interface"
   
 # Quality gates and acceptance criteria  
 quality:
@@ -80,6 +98,12 @@ quality:
     pi5_cold_start: "3-5 minutes for first token"
     pi5_warm_query: "1-3 minutes for first token"
     amd64_reference: "sub-second to 30 seconds"
+    update_check: "30 seconds for 100+ sources"
+  
+  content_management:
+    change_detection_accuracy: "100% for file mtime and HTTP etag changes"
+    deduplication_accuracy: "100% for identical content across sources"
+    update_efficiency: "Only changed content re-processed"
   
   resource_limits:
     ram_minimum: "6GB (Pi5)"
@@ -90,3 +114,4 @@ quality:
     uptime_target: "99%+ during normal operation"
     installation_time: "under 5 minutes on clean Pi5"
     test_coverage: ">85% for core modules"
+    data_integrity: "Survive power loss without corruption"

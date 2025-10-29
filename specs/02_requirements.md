@@ -1,12 +1,14 @@
 # Product Requirements
 
 ## Core
+
 1. **Local inference** only; no internet dependency for generation.
 2. **Streaming tokens** to UI for immediate responsiveness.
 3. **Battery‑friendly**: low idle draw, predictable thermal envelope.
 4. **Resilience**: survive ungraceful power loss without corrupting state.
 
 ## Functional
+
 - Accept a **textual prompt** from the user via web UI (FastAPI backend).
 - Use `llama-cpp-python` for local LLM inference (GGUF models).
 - Ingest plain text, HTML, and URLs (batch, file, or folder) into ChromaDB.
@@ -21,7 +23,8 @@
 - Models stored in `/var/lib/local-rag/models/`.
 
 ## Non-Functional
-- **Performance**: 
+
+- **Performance**:
   - Cold start (first query): 3-5 minutes for first token
   - Warm queries: 1-3 minutes for first token, reading-speed thereafter
   - Desktop/AMD64: Sub-second to 30 seconds (reference comparison)
@@ -33,6 +36,7 @@
 - **Cross-platform**: Support ARM64 (Pi5) and AMD64 architectures.
 
 ## Acceptance Tests
+
 - **Content ingestion**: Load text files, URLs, and HTML into vector database.
 - **Deduplication**: Detect and log duplicate content during import.
 - **Content management**: Update existing content without duplication.
