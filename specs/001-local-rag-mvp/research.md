@@ -8,7 +8,8 @@
 ### 1. LLM Integration via llama-cpp-python
 
 **Decision**: Use llama-cpp-python with GGUF model format
-**Rationale**: 
+**Rationale**:
+
 - Native Python bindings for llama.cpp provide optimal performance
 - GGUF format supports quantization for memory efficiency
 - Proven compatibility with ARM64 and AMD64 architectures
@@ -16,6 +17,7 @@
 - No external server dependencies
 
 **Alternatives considered**:
+
 - Transformers library: Higher memory usage, slower inference on CPU
 - OpenAI-compatible local servers: Additional complexity, resource overhead
 - Direct llama.cpp: Requires C++ integration, more complex
@@ -24,6 +26,7 @@
 
 **Decision**: ChromaDB with embedded SQLite backend
 **Rationale**:
+
 - Embedded mode eliminates server management complexity
 - SQLite backend ensures data persistence and reliability
 - Built-in similarity search and metadata filtering
@@ -31,6 +34,7 @@
 - Supports document chunking and embedding management
 
 **Alternatives considered**:
+
 - Pinecone: Requires internet connectivity, cloud dependency
 - Weaviate: Server-based, higher resource requirements
 - FAISS: Lower-level, requires additional persistence layer
@@ -39,6 +43,7 @@
 
 **Decision**: FastAPI with Uvicorn ASGI server
 **Rationale**:
+
 - High-performance async framework suitable for streaming responses
 - Automatic API documentation generation
 - Built-in validation with Pydantic models
@@ -46,6 +51,7 @@
 - Lightweight compared to Django/Flask
 
 **Alternatives considered**:
+
 - Flask: Synchronous, less suitable for streaming
 - Django: Over-engineered for single-user embedded application
 - Tornado: Lower-level, more complex implementation
@@ -54,6 +60,7 @@
 
 **Decision**: APT/Debian packaging with systemd integration
 **Rationale**:
+
 - Native Linux package management integration
 - Automatic dependency resolution
 - systemd service ensures proper startup/shutdown
@@ -61,6 +68,7 @@
 - Cross-architecture support (ARM64/AMD64)
 
 **Alternatives considered**:
+
 - Docker: Additional overhead, less suitable for embedded devices
 - Snap packages: Slower startup, higher resource usage
 - Python wheels: No system service integration
@@ -69,6 +77,7 @@
 
 **Decision**: Modular content processor with pluggable handlers
 **Rationale**:
+
 - Support for multiple input formats (text, HTML, URLs)
 - Extensible design for future content types
 - Consistent chunking strategy across formats
@@ -76,6 +85,7 @@
 - Metadata preservation through processing pipeline
 
 **Alternatives considered**:
+
 - Single monolithic processor: Less flexible, harder to test
 - External processing tools: Additional dependencies, complexity
 
@@ -83,6 +93,7 @@
 
 **Decision**: YAML configuration with environment variable overrides
 **Rationale**:
+
 - Human-readable configuration format
 - Hierarchical structure for complex settings
 - Environment variable overrides for deployment flexibility
@@ -90,6 +101,7 @@
 - Default configuration embedded in application
 
 **Alternatives considered**:
+
 - JSON configuration: Less human-friendly for complex configs
 - TOML configuration: Less widely adopted, fewer libraries
 - Environment variables only: Difficult for complex configurations
@@ -98,6 +110,7 @@
 
 **Decision**: Rich CLI with API communication backend
 **Rationale**:
+
 - Consistent behavior with web interface (both use API)
 - Rich terminal formatting for better user experience
 - Progress bars and status indicators for long operations
@@ -105,24 +118,28 @@
 - Command structure follows standard Unix conventions
 
 **Alternatives considered**:
+
 - Direct database access: Bypasses validation and business logic
 - Separate CLI backend: Code duplication, inconsistent behavior
 
 ## Architecture Decisions
 
 ### Embedding Strategy
+
 - Use text-embedding model integrated with ChromaDB
 - Chunk size: 512 tokens with 50 token overlap
 - Store original text with embeddings for retrieval context
 - Metadata includes source, timestamp, and content hash
 
 ### Error Handling Strategy
+
 - Graceful degradation when components unavailable
 - Retry logic for transient failures
 - User-friendly error messages with recovery suggestions
 - Comprehensive logging for debugging
 
 ### Performance Optimization
+
 - Lazy loading of LLM models to reduce startup time
 - Embedding batch processing for bulk imports
 - Memory-mapped model loading where supported

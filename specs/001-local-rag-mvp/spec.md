@@ -7,8 +7,6 @@
 
 ## User Scenarios & Testing *(mandatory)*
 
-## User Scenarios & Testing *(mandatory)*
-
 ### User Story 1 - Basic Document Query RAG (Priority: P1)
 
 A user can upload text documents to the system and ask questions about their content, receiving relevant answers generated using local LLM with retrieved context.
@@ -35,7 +33,7 @@ A user can install the system via APT package manager and manage it as a systemd
 
 **Acceptance Scenarios**:
 
-1. **Given** a clean Pi5 or AMD64 Linux system, **When** user installs the .deb package, **Then** all dependencies are resolved and service is ready to start
+1. **Given** a clean Pi5 or AMD64 Debian-based system (Ubuntu, Debian, Raspberry Pi OS), **When** user installs the .deb package, **Then** all dependencies are resolved and service is ready to start
 2. **Given** package is installed, **When** user runs `systemctl start local-rag`, **Then** service starts successfully and is accessible at <http://localhost:8080>
 3. **Given** service is running, **When** user runs health check, **Then** system reports all components (LLM, vector DB, API) as healthy
 
@@ -51,7 +49,7 @@ A user can import content from multiple sources (files, URLs, HTML) in batch ope
 
 **Acceptance Scenarios**:
 
-1. **Given** a folder containing text files and URLs, **When** user runs batch import command, **Then** all content is processed with progress reporting and both change detection and cross-source deduplication working correctly
+1. **Given** a folder containing text files, html files, and URLs, **When** user runs batch import command, **Then** all content is processed with progress reporting and both change detection and cross-source deduplication working correctly
 2. **Given** content has been imported previously, **When** source files are modified and re-import runs, **Then** only changed content is re-processed based on source metadata comparison (mtime, etag)
 3. **Given** identical content exists from different sources, **When** import runs, **Then** content_hash deduplication prevents duplicate embeddings while maintaining separate source tracking
 4. **Given** user wants to check for updates, **When** update check runs, **Then** system identifies outdated sources without re-importing and provides detailed change information
@@ -68,7 +66,7 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 
 **Acceptance Scenarios**:
 
-1. **Given** content exists in the system, **When** user lists content via CLI, **Then** all documents are shown with metadata (title, source, date, status)
+1. **Given** content exists in the system, **When** user lists content via CLI, **Then** all documents are shown with metadata (title, source, create date, updated date, status)
 2. **Given** user wants to remove content, **When** user runs delete command, **Then** content is soft-deleted and excluded from future queries
 3. **Given** system needs reset, **When** user runs reset command, **Then** all content and embeddings are cleared with confirmation
 
@@ -84,8 +82,6 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 - How does the system handle very large documents that exceed context windows?
 - What occurs when ChromaDB database becomes corrupted or inaccessible?
 - How does the system respond to malformed or malicious content during import?
-
-## Requirements *(mandatory)*
 
 ## Requirements *(mandatory)*
 
@@ -115,16 +111,36 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 
 ### Non-Functional Requirements
 
+#### Performance Requirements
+
 - **NFR-001**: Performance - Cold start (first query) MUST complete first token within 3-5 minutes on Pi5
-- **NFR-002**: Performance - Warm queries MUST complete first token within 1-3 minutes on Pi5, reading-speed thereafter
+- **NFR-002**: Performance - Warm queries MUST complete first token within 1-3 minutes on Pi5, reading-speed streaming thereafter
 - **NFR-003**: Performance - Desktop/AMD64 MUST achieve sub-second to 30 seconds for first token (reference comparison)
-- **NFR-004**: UI - System MUST work on 720p screens using Chrome/Firefox browsers
-- **NFR-005**: Logging - System MUST use JSON format with configurable levels, disk + stdout output, with rotation
-- **NFR-006**: Resource Management - System MUST provide configurable RAM/disk usage limits with graceful backoff
-- **NFR-007**: Monitoring - System MUST provide health checks via API endpoint and CLI command
-- **NFR-008**: Reliability - System MUST handle component failures gracefully with user-friendly error messages
-- **NFR-009**: Security - System MUST validate and sanitize all user inputs and file paths
-- **NFR-010**: Maintainability - System MUST follow modular design with clear interfaces between components
+- **NFR-004**: Resource Limits - Memory usage MUST stay under 6GB on Pi5, configurable for other systems
+- **NFR-005**: Storage Performance - System MUST scale predictably with content (100+ documents, 2K-10K words each)
+- **NFR-006**: Thermal Management - System MUST maintain predictable thermal envelope on Pi5 with monitoring
+
+#### User Interface Requirements
+
+- **NFR-007**: UI Compatibility - System MUST work on 720p screens using Chrome/Firefox browsers
+- **NFR-008**: UI Responsiveness - Web interface MUST remain responsive during LLM inference
+- **NFR-009**: Stream Display - Response tokens MUST stream to UI for immediate user feedback
+
+#### System Quality Requirements
+
+- **NFR-010**: Logging - System MUST use JSON format with configurable levels, disk + stdout output, with rotation
+- **NFR-011**: Resource Management - System MUST provide configurable RAM/disk usage limits with graceful backoff
+- **NFR-012**: Monitoring - System MUST provide health checks via API endpoint and CLI command  
+- **NFR-013**: Reliability - System MUST handle component failures gracefully with user-friendly error messages
+- **NFR-014**: Power Resilience - System MUST survive ungraceful power loss without state corruption
+- **NFR-015**: Battery Efficiency - System MUST maintain low idle power draw for battery-powered operation
+
+#### Security and Maintenance Requirements
+
+- **NFR-016**: Security - System MUST validate and sanitize all user inputs and file paths
+- **NFR-017**: Access Control - System MUST bind to localhost by default for single-user security
+- **NFR-018**: Maintainability - System MUST follow modular design with clear interfaces between components
+- **NFR-019**: Cross-Platform - System MUST support both ARM64 (Pi5) and AMD64 architectures consistently
 
 ### Key Entities
 
@@ -136,18 +152,30 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 
 ## Success Criteria *(mandatory)*
 
-## Success Criteria *(mandatory)*
+## Success Criteria and Acceptance *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can complete system installation via single APT command on clean Pi5/AMD64 systems within 5 minutes
+#### Functional Success Metrics
+
+- **SC-001**: Users can complete system installation via single APT command on clean Pi5/AMD64 Debian-based systems within 5 minutes
 - **SC-002**: System handles 100+ documents (2K-10K words each) without performance degradation  
-- **SC-003**: Query responses achieve target performance: Pi5 cold start 3-5 minutes, warm queries 1-3 minutes for first token
-- **SC-004**: System maintains 99%+ uptime during normal operation without manual intervention
-- **SC-005**: Memory usage remains under 6GB on Pi5 systems during typical operation
-- **SC-006**: 90% of users can successfully import documents and receive relevant responses on first attempt
-- **SC-007**: System recovers gracefully from power loss without data corruption or requiring manual repair
-- **SC-008**: Content change detection achieves 100% accuracy for file modifications (mtime) and web content updates (etag/last-modified headers) with separate tracking for cross-source duplicate content
-- **SC-009**: Update checking completes within 30 seconds for 100+ sources and accurately identifies changed vs unchanged content without re-downloading
-- **SC-009**: Web UI remains responsive on 720p displays across Chrome and Firefox browsers
-- **SC-010**: Health check endpoint responds within 5 seconds and accurately reports component status
+- **SC-003**: System achieves 90% successful completion rate for core workflow: document import completes without errors AND queries against imported content return responses with source citations within performance targets
+- **SC-004**: Content change detection achieves 100% accuracy for file modifications (mtime) and web content updates (etag/last-modified headers)
+- **SC-005**: Update checking completes within 30 seconds for 100+ sources and accurately identifies changed vs unchanged content
+- **SC-006**: System recovers gracefully from power loss without data corruption or requiring manual repair
+
+#### Performance Success Metrics
+
+- **SC-007**: Query responses achieve target performance: Pi5 cold start 3-5 minutes, warm queries 1-3 minutes for first token
+- **SC-008**: Desktop/AMD64 achieves sub-second to 30 seconds for first token generation
+- **SC-009**: Memory usage remains under 6GB on Pi5 systems during typical operation
+- **SC-010**: Web UI remains responsive on 720p displays across Chrome and Firefox browsers
+- **SC-011**: Health check endpoint responds within 5 seconds and accurately reports component status
+
+#### Reliability Success Metrics
+
+- **SC-012**: System maintains 99%+ uptime during normal operation without manual intervention  
+- **SC-013**: Thermal throttling prevents hardware damage on Pi5 during sustained operation
+- **SC-014**: Import operations can be resumed after interruption without data loss
+- **SC-015**: All components fail gracefully with informative error messages and recovery guidance

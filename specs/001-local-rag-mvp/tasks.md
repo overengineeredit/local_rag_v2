@@ -7,6 +7,90 @@
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+## Development Milestones
+
+This project follows a 4-milestone development strategy with concrete deliverables and success criteria for each phase:
+
+### Milestone 1: Core Infrastructure and MVP (4-6 weeks)
+**Goal**: Basic working system with essential RAG functionality
+
+**Deliverables**:
+- Single Python application with embedded LLM and vector DB
+- APT package for installation on Pi5 and AMD64
+- Systemd service integration
+- Basic web UI for queries
+- Content ingestion via CLI
+
+**Definition of Done**:
+- [ ] `.deb` package installs cleanly on Pi5 and AMD64
+- [ ] `systemctl start local-rag` launches the service successfully
+- [ ] Web UI accessible at `http://localhost:8080`
+- [ ] Can ingest text files via CLI command
+- [ ] Can query system about ingested content with coherent responses
+- [ ] Health check API endpoint returns system status
+- [ ] Basic error handling with user-friendly messages
+- [ ] Logging configured with rotation
+
+### Milestone 2: Content Management and Robustness (3-4 weeks)
+**Goal**: Robust content operations with deduplication and metadata
+
+**Deliverables**:
+- Advanced content ingestion (URLs, HTML, batches)
+- Deduplication and metadata management
+- Content update/delete operations
+- Import progress and resumability
+- Resource limit enforcement
+
+**Definition of Done**:
+- [ ] Can import content from URLs and HTML files
+- [ ] Batch import from folders with progress reporting
+- [ ] Duplicate content detected and logged appropriately
+- [ ] Existing content can be updated without duplication
+- [ ] Content can be soft-deleted via CLI
+- [ ] Import operations can be resumed after interruption
+- [ ] Resource limits prevent system overload
+- [ ] Import summaries show success/failure counts
+- [ ] Metadata properly stored and searchable
+
+### Milestone 3: Testing and Developer Experience (2-3 weeks)
+**Goal**: Comprehensive testing and documentation for maintainability
+
+**Deliverables**:
+- Unit test suite with high coverage
+- BDD acceptance tests
+- Developer documentation
+- Architecture diagrams
+- Contribution guidelines
+
+**Definition of Done**:
+- [ ] Unit tests cover all core modules (>85% coverage)
+- [ ] BDD tests validate all user scenarios
+- [ ] Integration tests verify API and CLI functionality
+- [ ] PlantUML architecture diagrams generated
+- [ ] API documentation auto-generated
+- [ ] Developer setup instructions documented
+- [ ] Code follows consistent style and documentation standards
+- [ ] CI/CD pipeline builds and tests both architectures
+
+### Milestone 4: Performance and User Experience (2-3 weeks)
+**Goal**: Optimize performance and improve user interface
+
+**Deliverables**:
+- Performance optimizations for Pi5
+- Enhanced web UI with better UX
+- Streaming response display
+- Error handling improvements
+- Configuration validation
+
+**Definition of Done**:
+- [ ] Response times optimized for Pi5 constraints
+- [ ] Web UI shows streaming responses in real-time
+- [ ] Error messages are clear and actionable
+- [ ] Configuration validation prevents startup issues
+- [ ] System remains responsive under load
+- [ ] Memory usage stays within configured limits
+- [ ] UI works well on 720p displays
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
