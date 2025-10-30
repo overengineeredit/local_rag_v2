@@ -81,7 +81,7 @@
 - Support for multiple input formats (text, HTML, URLs)
 - Extensible design for future content types
 - Consistent chunking strategy across formats
-- Content hash-based deduplication
+- content_hash-based deduplication
 - Metadata preservation through processing pipeline
 
 **Alternatives considered**:
@@ -129,7 +129,7 @@
 - Use text-embedding model integrated with ChromaDB
 - Chunk size: 512 tokens with 50 token overlap
 - Store original text with embeddings for retrieval context
-- Metadata includes source, timestamp, and content hash
+- Metadata includes source, timestamp, and content_hash
 
 ### Error Handling Strategy
 

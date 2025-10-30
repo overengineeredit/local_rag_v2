@@ -483,18 +483,177 @@ The Local RAG system uses GitHub Actions for comprehensive CI/CD automation, foc
 
 ### Testing Automation
 
-#### Test Categories
+#### Test Categories and Framework
 
-- **Unit Tests**: pytest with 80% coverage minimum, <2 minutes execution
-- **Integration Tests**: Component interaction with Docker containers, <5 minutes
-- **System Tests**: Full workflow validation with APT packages, <10 minutes
-- **Performance Tests**: pytest-benchmark with memory/response time thresholds
+##### Unit Tests (pytest)
+
+- **Core Functionality**:
+  - Content ingestion (file, HTML, URL parsing with various input formats)
+  - Deduplication (hash-based duplicate detection across content types)
+  - Metadata extraction (title, source, date extraction from documents)
+  - Vector operations (ChromaDB CRUD operations and embedding generation)
+  - LLM interface (llama-cpp-python integration, token streaming, error handling)
+  - Configuration (YAML/TOML parsing, environment variable override)
+
+- **Service Layer**:
+  - Content Manager (document processing, chunking, storage)
+  - Vector Store (ChromaDB operations, query functionality)
+  - LLM Interface (model loading, inference, response streaming)
+  - Web Interface (FastAPI endpoint functionality)
+  - CLI Interface (command parsing, execution, output formatting)
+
+- **Configuration**: pytest with coverage (80% minimum, 90% preferred), pytest-xdist for parallel execution, comprehensive mocking for external dependencies
+
+##### Integration Tests
+
+- **Component Integration**:
+  - API-CLI integration (CLI commands calling API endpoints)
+  - LLM-Vector integration (embedding generation and storage)
+  - Web-Service integration (FastAPI routes with service layer)
+  - Configuration integration (end-to-end configuration loading)
+
+- **Service Integration**:
+  - ChromaDB integration (database operations with real ChromaDB instance)
+  - Model integration (LLM loading and inference, mocked for CI)
+  - File system integration (content loading from various sources)
+  - Health check integration (component health monitoring)
+
+- **Error Scenario Testing**:
+  - Network failures (timeouts, connection errors)
+  - Resource limits (disk full, memory limits, large files)
+  - Corrupted data (malformed content and configurations)
+  - Service failures (graceful degradation and error reporting)
+
+##### System Tests
+
+- **End-to-End Workflows**:
+  - Content loading (import folder → verify storage → query content)
+  - Query processing (load content → ask question → verify relevant response)
+  - Content management (update content → verify changes reflected)
+  - Service lifecycle (start → health check → stop → restart)
+
+- **Performance Testing**:
+  - Load testing (import 100+ documents, measure time and memory)
+  - Query performance (response time under various content loads)
+  - Concurrent usage (multiple simultaneous queries and imports)
+  - Resource usage (memory, CPU, disk usage under normal operation)
+
+- **APT Package Testing**:
+  - Installation (package installation on clean systems)
+  - Service management (systemd service start/stop/restart)
+  - Configuration (default configuration and overrides)
+  - Upgrade/removal (package upgrade and clean removal)
+
+#### BDD Tests (pytest-bdd)
+
+**Content Loading Scenarios**:
+
+```gherkin
+Scenario: Load folder of text files
+  Given a folder containing text files
+  When I run the content import command
+  Then all files should be indexed in ChromaDB
+  And metadata should be extracted correctly
+
+Scenario: Handle duplicate content
+  Given existing content in the system
+  When I import the same content again
+  Then duplicates should be detected and skipped
+  And the total count should remain unchanged
+```
+
+**Query Processing Scenarios**:
+
+```gherkin
+Scenario: User asks question about loaded content
+  Given content has been loaded into the system
+  When I submit a query about the content
+  Then I should receive a relevant response
+  And the response should include source citations
+
+Scenario: Handle LLM service failure
+  Given the LLM service is unavailable
+  When I submit a query
+  Then I should receive an appropriate error message
+  And the system should remain stable
+```
+
+**Content Management Scenarios**:
+
+```gherkin
+Scenario: Update existing content
+  Given content exists in the system
+  When I update the source content
+  And re-import the content
+  Then the updated version should be indexed
+  And old versions should be removed
+
+Scenario: Resume interrupted import
+  Given an import process was interrupted
+  When I restart the import
+  Then the process should resume from the last checkpoint
+  And all content should be imported successfully
+```
+
+#### Test Data Management
+
+**Synthetic Test Data**:
+
+- Text files (20+ documents, various sizes 1KB-1MB)
+- HTML files (different structures, encoding, malformed HTML)
+- URL lists (working links, broken links, redirect scenarios)
+- Large files (edge cases for memory and processing limits)
+- Unicode content (international characters, special symbols)
+
+**Real-World Test Data**:
+
+- Technical documentation samples
+- News articles, blog posts, academic papers
+- Mixed content (text, HTML, markdown files)
+- Duplicate scenarios (identical content in different formats)
 
 #### Test Execution Strategy
 
-- **Parallel Execution**: Test categories in parallel jobs
-- **Test Data Management**: Shared document corpus, deterministic scenarios
-- **Failure Handling**: Immediate PR status updates, artifact collection, retry logic
+- **Parallel Execution**: Test categories in parallel jobs, pytest-xdist within categories
+- **Test Data Management**: Shared document corpus, deterministic scenarios, version-controlled test data
+- **Failure Handling**: Immediate PR status updates, artifact collection, retry logic for flaky tests
+- **Performance Benchmarks**:
+  - Import speed: 10 documents/minute minimum for text files
+  - Query response: <5 seconds for typical queries
+  - Memory usage: <2GB total system memory usage
+  - Startup time: <30 seconds from service start to ready
+
+#### CI/CD Test Integration
+
+**Pull Request Testing**:
+
+- Fast feedback (essential tests <5 minutes)
+- Coverage reporting posted to PR
+- Quality gates (tests must pass before merge)
+- Parallel execution across multiple jobs
+
+**Test Automation Tools**:
+
+- pytest (primary testing framework)
+- pytest-cov (coverage reporting)
+- pytest-xdist (parallel test execution)
+- pytest-bdd (behavior-driven development tests)
+- pytest-mock (enhanced mocking capabilities)
+- pytest-benchmark (performance testing)
+
+**Test Environment Management**:
+
+- Clean environments for each test run
+- Consistent dependency versions
+- Test isolation (no interference or shared state)
+- Proper resource cleanup after execution
+
+**Continuous Monitoring**:
+
+- Test performance tracking (execution time trends)
+- Flaky test detection and quarantine
+- Coverage trends monitoring
+- Automated failure analysis and categorization
 
 ### Quality Gates and Automation
 

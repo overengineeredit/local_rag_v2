@@ -97,17 +97,17 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 - **FR-008**: System MUST implement dual hash strategy: source_hash (URI + metadata + content) for change detection and content_hash (content only) for cross-source deduplication
 - **FR-009**: System MUST detect content updates at source and provide update mechanisms without requiring full re-import
 - **FR-010**: System MUST support content updates by comparing source metadata (mtime, etag) and re-importing only changed content
-- **FR-010**: System MUST provide soft delete functionality for content management
-- **FR-011**: System MUST package as .deb for apt-based installation on ARM64 and AMD64
-- **FR-012**: System MUST provide systemd service for starting/stopping the application
-- **FR-013**: System MUST store all configuration in `/etc/local-rag/config.yaml`
-- **FR-014**: System MUST store models in `/var/lib/local-rag/models/`
-- **FR-015**: System MUST provide health check API endpoint (`/health`) and CLI command
-- **FR-016**: System MUST implement CLI commands for content operations communicating via API
-- **FR-017**: System MUST be battery-friendly with low idle power draw and predictable thermal envelope
-- **FR-018**: System MUST survive ungraceful power loss without corrupting state
-- **FR-019**: System MUST support both ARM64 (Pi5) and AMD64 architectures
-- **FR-020**: System MUST implement JSON-formatted logging with configurable levels and rotation
+- **FR-011**: System MUST provide soft delete functionality for content management
+- **FR-012**: System MUST package as .deb for apt-based installation on ARM64 and AMD64
+- **FR-013**: System MUST provide systemd service for starting/stopping the application
+- **FR-014**: System MUST store all configuration in `/etc/local-rag/config.yaml`
+- **FR-015**: System MUST store models in `/var/lib/local-rag/models/`
+- **FR-016**: System MUST provide health check API endpoint (`/health`) and CLI command
+- **FR-017**: System MUST implement CLI commands for content operations communicating via API
+- **FR-018**: System MUST be battery-friendly with low idle power draw and predictable thermal envelope
+- **FR-019**: System MUST survive ungraceful power loss without corrupting state
+- **FR-020**: System MUST support both ARM64 (Pi5) and AMD64 architectures
+- **FR-021**: System MUST implement JSON-formatted logging with configurable levels and rotation
 
 ### Non-Functional Requirements
 

@@ -16,6 +16,7 @@ Represents an ingested content item with associated metadata and change tracking
 - `source_uri: str` - Original file path or URL (normalized)
 - `source_hash: str` - SHA-256 hash of source URI + metadata + content (detects updates)
 - `content_hash: str` - SHA-256 hash of normalized content only (cross-source deduplication)
+- `created: datetime` - ISO 8601 timestamp of when this document was initially imported
 - `source_metadata: dict` - Source-specific metadata (mtime, etag, size, etc.)
 - `ingestion_timestamp: datetime` - ISO 8601 timestamp of first ingestion
 - `last_updated: datetime` - ISO 8601 timestamp of last content update
@@ -224,8 +225,8 @@ Represents system configuration settings loaded from YAML.
 - `llm.max_tokens: int` - Maximum tokens per response
 - `vector_db.persist_directory: str` - ChromaDB data directory
 - `vector_db.collection_name: str` - ChromaDB collection name
-- `api.host: str` - API server bind address
-- `api.port: int` - API server port
+- `api.host: str` - API server bind address (default: "127.0.0.1")
+- `api.port: int` - API server port (default: 8080)
 - `logging.level: str` - Log level (DEBUG, INFO, WARN, ERROR)
 - `logging.file: str` - Log file path
 - `logging.max_size: str` - Max log file size
