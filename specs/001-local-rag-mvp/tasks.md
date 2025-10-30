@@ -34,6 +34,8 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] Basic error handling with user-friendly messages
 - [ ] Logging configured with rotation
 
+**Maps to Phases**: Phase 1 (Setup) + Phase 2 (Foundational) + Phase 3 (US1) + Phase 4 (US2)
+
 ### Milestone 2: Content Management and Robustness (3-4 weeks)
 
 **Goal**: Robust content operations with deduplication and metadata
@@ -58,6 +60,8 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] Import summaries show success/failure counts
 - [ ] Metadata properly stored and searchable
 
+**Maps to Phases**: Phase 5 (US3) + Phase 6 (US4)
+
 ### Milestone 3: Testing and Developer Experience (2-3 weeks)
 
 **Goal**: Comprehensive testing and documentation for maintainability
@@ -81,6 +85,8 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] Code follows consistent style and documentation standards
 - [ ] CI/CD pipeline builds and tests both architectures
 
+**Maps to Phases**: Phase 7 (Polish & Cross-Cutting - Testing Focus)
+
 ### Milestone 4: Performance and User Experience (2-3 weeks)
 
 **Goal**: Optimize performance and improve user interface
@@ -102,6 +108,19 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] System remains responsive under load
 - [ ] Memory usage stays within configured limits
 - [ ] UI works well on 720p displays
+
+**Maps to Phases**: Phase 7 (Polish & Cross-Cutting - Performance/UX Focus)
+
+---
+
+## Milestone-to-Phase Mapping
+
+- **Milestone 1** → **Phases 1-4** (Setup + Foundational + US1 + US2) - MVP Core
+- **Milestone 2** → **Phases 5-6** (US3 + US4) - Content Management
+- **Milestone 3** → **Phase 7** (Polish & Cross-Cutting - Testing Focus)
+- **Milestone 4** → **Phase 7** (Polish & Cross-Cutting - Performance/UX Focus)
+
+---
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -133,7 +152,7 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
 - [ ] T006 Setup ChromaDB embedded configuration and initialization in src/guide/vector_store.py
-- [ ] T007 [P] Implement configuration management with YAML loading in src/guide/**init**.py
+- [ ] T007 [P] Implement configuration management with YAML loading in src/guide/__init__.py
 - [ ] T008 [P] Setup logging infrastructure with JSON formatting and rotation in src/guide/main.py
 - [ ] T009 [P] Create base FastAPI application structure in src/guide/main.py
 - [ ] T010 Create error handling middleware and exception classes in src/guide/web_interface.py
@@ -228,7 +247,6 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] T049 [US3] Implement import summary with change/duplicate/unchanged categorization in src/guide/content_manager.py
 - [ ] T050 [US3] Add CLI commands for update checking and selective re-import in src/guide/cli.py
 - [ ] T051 [US3] Add progress tracking UI for batch operations and update status in src/guide/web_interface.py
-- [ ] T048 [US3] Add progress tracking UI components in src/guide/web_interface.py
 
 **Checkpoint**: All core import functionality should now be independently functional
 

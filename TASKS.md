@@ -14,7 +14,7 @@ The project has transitioned to a SpecKit-compliant structure with improved task
 - **Enhanced Features**: Includes dual hash strategy, change detection, and improved content management
 - **Better Testing**: Comprehensive test coverage with contract, integration, and BDD tests
 
-### Key Improvements in New Task Structure:
+### Key Improvements in New Task Structure
 
 - ✅ User story-based organization for independent development and testing
 - ✅ Enhanced content management with source-aware change detection
