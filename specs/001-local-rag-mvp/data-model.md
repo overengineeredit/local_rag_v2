@@ -226,7 +226,7 @@ Represents system configuration settings loaded from YAML.
 - `vector_db.persist_directory: str` - ChromaDB data directory
 - `vector_db.collection_name: str` - ChromaDB collection name
 - `api.host: str` - API server bind address (default: "127.0.0.1")
-- `api.port: int` - API server port (default: 8080)
+- `api.port: int` - API server port (default: 8080, configurable to avoid conflicts)
 - `logging.level: str` - Log level (DEBUG, INFO, WARN, ERROR)
 - `logging.file: str` - Log file path
 - `logging.max_size: str` - Max log file size

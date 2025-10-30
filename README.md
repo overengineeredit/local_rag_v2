@@ -1,6 +1,7 @@
 # Local RAG — Production-Ready Edge LLM System
 
 This repository implements a **comprehensive, production-ready** local RAG system using **GitHub SpecKit** methodology:
+
 - **Feature-driven development** with complete specifications (`/specs/001-local-rag-mvp/`)
 - **4-milestone development strategy** with defined deliverables and success criteria
 - **Dual hash strategy** for intelligent content management and change detection
@@ -12,13 +13,15 @@ This repository implements a **comprehensive, production-ready** local RAG syste
 ## ✨ Production Features
 
 ### Core Capabilities
+
 - **🔒 Privacy-First**: 100% local processing, zero cloud dependencies
 - **🧠 Smart Content Management**: Dual hash strategy with source-aware change detection
-- **🔄 Efficient Updates**: Intelligent content refresh without re-downloading  
+- **🔄 Efficient Updates**: Intelligent content refresh without re-downloading
 - **⚡ Performance Optimized**: Pi5 cold start 3-5min, warm queries 1-3min first token
 - **📱 Cross-Platform**: ARM64 (Pi5) and AMD64 with identical functionality
 
 ### Enterprise Features
+
 - **🌡️ Thermal Management**: CPU temperature monitoring with automatic throttling
 - **🛡️ Resilience**: Power-loss recovery, database integrity checks, graceful degradation
 - **📊 Production Monitoring**: Health checks, metrics, structured JSON logging
@@ -26,6 +29,7 @@ This repository implements a **comprehensive, production-ready** local RAG syste
 - **🧪 Comprehensive Testing**: Unit, integration, BDD tests with 85%+ coverage
 
 ### User Experience
+
 - **🌐 Web Interface**: FastAPI backend with responsive UI (720p+ screens)
 - **⚡ CLI Interface**: Rich terminal commands with progress reporting
 - **📈 Real-time Feedback**: Streaming responses, import progress, health status
@@ -58,6 +62,7 @@ This repository implements a **comprehensive, production-ready** local RAG syste
 ## Quickstart
 
 ### Development Mode
+
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -69,7 +74,7 @@ python -m guide.main
 python -m guide.cli status                  # System health and component status
 python -m guide.cli import /path/to/docs    # Batch import with progress
 python -m guide.cli import --url https://example.com/article.html
-python -m guide.cli check-updates           # Intelligent update detection  
+python -m guide.cli check-updates           # Intelligent update detection
 python -m guide.cli update --changed-only   # Selective content refresh
 python -m guide.cli query "What is this about?"
 python -m guide.cli backup /path/to/backup  # Data backup/restore
@@ -78,6 +83,7 @@ python -m guide.cli backup /path/to/backup  # Data backup/restore
 ```
 
 ### Production Deployment
+
 ```bash
 # Professional installation via APT package
 sudo apt install ./local-rag_1.0.0_arm64.deb
@@ -95,11 +101,13 @@ local-rag update --resume                  # Resumable operations
 local-rag download-model deepseek-r1       # Model management
 local-rag backup --encrypt /secure/path    # Enterprise backup
 ```
-local-rag list --show-updates             # View content status
+
+local-rag list --show-updates # View content status
 local-rag query "What is this about?"
 
 # Access web interface at http://localhost:8080
-```
+
+````
 
 ## Repository Layout
 
@@ -135,12 +143,12 @@ tests/                — Comprehensive test suite
 
 .github/              — CI/CD workflows and automation
 prompts/              — AI assistant system prompts
-```
+````
 
 ## What this **is**
 
 - 🎯 **Privacy-focused RAG system** with local-only inference and processing
-- 🔄 **Intelligent content management** with dual hash strategy for change detection  
+- 🔄 **Intelligent content management** with dual hash strategy for change detection
 - 📈 **Efficient update workflows** that only re-process changed content
 - 🌐 **Cross-source deduplication** maintaining separate source tracking
 - 🖥️ **Cross-platform deployment** via APT packages (ARM64 + AMD64)

@@ -115,7 +115,7 @@ The system consists of a single Python process managed by systemd, containing al
 - `LLM_MODEL_PATH`: Path to GGUF model file
 - `MAX_RAM_MB`: Maximum RAM usage in MB (default: 6144 for Pi5)
 - `API_HOST`: FastAPI bind address (default: `127.0.0.1`)
-- `API_PORT`: FastAPI port (default: `8080`)
+- `API_PORT`: FastAPI port (default: `8080`, configurable to avoid conflicts with MeshtasticD, etc.)
 
 #### Configuration File Structure
 
@@ -136,7 +136,7 @@ vector_db:
 
 api:
   host: "127.0.0.1"
-  port: 8080
+  port: 8080                    # Configurable: use 8081, 8082, or 9080 to avoid conflicts
   cors_origins: ["http://localhost:8080"]
 
 logging:
@@ -796,7 +796,341 @@ packaging/
 └── scripts/               # Package build and CI scripts
 ```
 
-**Structure Decision**: Single project structure chosen because the system is designed as a monolithic Python application with embedded services (LLM, vector DB, web UI) running in a single service managed by systemd (may use multiple processes or threads). This aligns with the requirement for easy deployment and resource efficiency on constrained hardware like Raspberry Pi 5.
+**Structure Decision**: Single project structure chosen because the system is designed as a monolithic Python application with embedded services (LLM, vector DB, web UI) running in a single process managed by systemd. This aligns with the requirement for easy deployment and resource efficiency on constrained hardware like Raspberry Pi 5.
+
+## Deployment Strategy
+
+### Target Environment and Requirements
+
+#### Hardware Requirements
+
+- **Primary Target**: Raspberry Pi 5 (8GB RAM recommended)
+- **Secondary Target**: AMD64 systems (desktop/server)
+- **Storage**: 64GB+ microSD (Class 10 or better) for Pi5, SSD recommended for AMD64
+- **Network**: WiFi or Ethernet (required only for initial setup and model downloads)
+
+#### Resource Requirements
+
+- **RAM**: 6GB minimum, 8GB recommended (1.5B parameter model + ChromaDB + OS overhead)
+- **Storage**:
+  - 8GB for application components
+  - 4GB for default GGUF model files
+  - 16GB+ for content storage and vector embeddings
+- **CPU**: All available cores utilized for LLM inference via llama-cpp-python
+- **Power**: 5V/5A PSU recommended for sustained CPU load during inference
+- **Dependencies**: Self-contained deployment with no external dependencies
+
+#### Operating System Support
+
+- **Primary**: Debian 12 (Bookworm) ARM64 for Raspberry Pi 5
+- **Secondary**: Ubuntu 22.04 LTS, Debian 12 on AMD64 architectures
+- **Package Format**: Debian (.deb) packages for both ARM64 and AMD64
+
+### Installation Process
+
+#### Standard APT Installation
+
+1. **Download Package**: Get architecture-specific `.deb` file
+
+   ```bash
+   # For Raspberry Pi 5 (ARM64)
+   wget https://github.com/user/repo/releases/latest/download/local-rag_1.0.0_arm64.deb
+   
+   # For AMD64 systems
+   wget https://github.com/user/repo/releases/latest/download/local-rag_1.0.0_amd64.deb
+   ```
+
+2. **Install Package**: Single command installation with dependency resolution
+
+   ```bash
+   sudo apt install ./local-rag_1.0.0_arm64.deb
+   ```
+
+3. **Model Setup**: Download and configure LLM model
+
+   ```bash
+   # Download default model (DeepSeek-R1-distill-qwen 1.5B Q4 quantized)
+   sudo local-rag download-model deepseek-r1-distill-qwen-1.5b
+   
+   # Or manually place GGUF files in /var/lib/local-rag/models/
+   ```
+
+4. **Configuration**: Edit system configuration if needed
+
+   ```bash
+   sudo nano /etc/local-rag/config.yaml
+   # Change port if 8080 conflicts with other services (MeshtasticD, etc.)
+   # Example: port: 8081
+   ```
+
+5. **Service Management**: Enable and start the service
+
+   ```bash
+   sudo systemctl enable --now local-rag
+   ```
+
+6. **Verification**: Confirm system health
+
+   ```bash
+   # API health check
+   curl http://localhost:8080/health
+   
+   # CLI status check  
+   local-rag status
+   ```
+
+#### Repository-Based Installation
+
+For easier updates and management:
+
+```bash
+# Add GPG key for package verification
+curl -fsSL https://username.github.io/local-rag-apt/gpg | sudo gpg --dearmor -o /usr/share/keyrings/local-rag.gpg
+
+# Add custom APT repository
+echo "deb [signed-by=/usr/share/keyrings/local-rag.gpg] https://username.github.io/local-rag-apt stable main" | sudo tee /etc/apt/sources.list.d/local-rag.list
+
+# Install via APT
+sudo apt update
+sudo apt install local-rag
+```
+
+### File System Layout
+
+#### Application Components
+
+```text
+/usr/local/bin/local-rag              # Main executable
+/usr/lib/python3.11/site-packages/guide/  # Application code
+/etc/local-rag/config.yaml            # System configuration
+/etc/systemd/system/local-rag.service # systemd service definition
+```
+
+#### Data and Storage
+
+```text
+/var/lib/local-rag/                   # Application data directory
+├── chromadb/                         # Vector database files
+├── content/                          # Source content cache
+├── models/                           # LLM model files
+└── backups/                          # System backups
+```
+
+#### Logging and Monitoring
+
+```text
+/var/log/local-rag/                   # Application logs (optional)
+systemd journal                       # Primary logging via journalctl
+```
+
+### Service Management
+
+#### systemd Service Configuration
+
+The system runs as a dedicated systemd service with proper isolation:
+
+```ini
+[Unit]
+Description=Local RAG System
+After=network.target
+Wants=network.target
+
+[Service]
+Type=exec
+User=local-rag
+Group=local-rag
+ExecStart=/usr/local/bin/local-rag serve
+WorkingDirectory=/var/lib/local-rag
+Environment=LOCAL_RAG_CONFIG=/etc/local-rag/config.yaml
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### Service Operations
+
+```bash
+# Start service
+sudo systemctl start local-rag
+
+# Stop service  
+sudo systemctl stop local-rag
+
+# Enable auto-start on boot
+sudo systemctl enable local-rag
+
+# Check service status
+sudo systemctl status local-rag
+
+# View service logs
+sudo journalctl -u local-rag -f
+
+# Reload configuration without restart
+sudo systemctl reload local-rag
+```
+
+### Security Considerations
+
+#### Access Control and Network Security
+
+- **Local Access Only**: Web interface binds to localhost:8080 by default
+- **No External Dependencies**: No internet access required after initial setup
+- **Firewall Friendly**: No inbound ports required, outbound only for initial model downloads
+
+#### System Security
+
+- **Dedicated User**: Service runs as non-root `local-rag` user
+- **File Permissions**: Standard Unix permissions protect data files
+- **Process Isolation**: systemd provides process and resource isolation
+- **No Authentication**: Single-user device model, secured by physical access
+
+#### Data Security
+
+- **Local Storage**: All data remains on device in `/var/lib/local-rag/`
+- **No Cloud Dependencies**: Complete data sovereignty
+- **Backup Control**: User controls all backup and recovery processes
+
+### Monitoring and Maintenance
+
+#### Health Monitoring
+
+```bash
+# API health endpoint
+curl http://localhost:8080/health
+
+# CLI health check
+local-rag status
+
+# Detailed system information
+local-rag info --verbose
+```
+
+#### Log Management
+
+```bash
+# View real-time logs
+sudo journalctl -u local-rag -f
+
+# View recent logs with context
+sudo journalctl -u local-rag --since "1 hour ago"
+
+# Export logs for debugging
+sudo journalctl -u local-rag --since yesterday > local-rag.log
+```
+
+#### Backup and Recovery
+
+```bash
+# Create system backup
+local-rag backup --output /path/to/backup.tar.gz
+
+# Restore from backup
+local-rag restore --input /path/to/backup.tar.gz
+
+# Export content only
+local-rag export-content --format json --output content-backup.json
+```
+
+#### Maintenance Operations
+
+```bash
+# Update model files
+local-rag update-model --model deepseek-r1-distill-qwen-1.5b
+
+# Rebuild vector database
+local-rag rebuild-vectors --confirm
+
+# Clean temporary files
+local-rag cleanup --temp-files
+
+# Vacuum database
+local-rag vacuum --chromadb
+```
+
+### Package Structure and Dependencies
+
+#### APT Package Contents
+
+```text
+local-rag_1.0.0-1_arm64.deb
+├── DEBIAN/
+│   ├── control                    # Package metadata and dependencies
+│   ├── postinst                   # Post-installation script
+│   ├── prerm                      # Pre-removal script
+│   └── postrm                     # Post-removal script
+├── usr/local/bin/local-rag        # Main executable
+├── etc/local-rag/config.yaml      # Default configuration
+├── etc/systemd/system/local-rag.service  # Service definition
+└── var/lib/local-rag/             # Data directory structure
+```
+
+#### Package Dependencies
+
+Automatically resolved via APT:
+
+- `python3.11` - Python runtime
+- `python3-pip` - Package management
+- `systemd` - Service management
+- `curl` - Health check utilities
+
+#### Installation Scripts
+
+**Post-Installation (`postinst`)**:
+
+```bash
+#!/bin/bash
+# Create dedicated user and group
+useradd --system --home /var/lib/local-rag --shell /bin/false local-rag
+
+# Set directory permissions
+chown -R local-rag:local-rag /var/lib/local-rag
+chmod 755 /var/lib/local-rag
+
+# Install Python dependencies
+pip3 install --system -r /usr/share/local-rag/requirements.txt
+
+# Enable service (but don't start automatically)
+systemctl daemon-reload
+systemctl enable local-rag
+```
+
+**Pre-Removal (`prerm`)**:
+
+```bash
+#!/bin/bash
+# Stop service before removal
+systemctl stop local-rag
+systemctl disable local-rag
+```
+
+### Troubleshooting and Support
+
+#### Common Installation Issues
+
+1. **Insufficient Storage**: Ensure 32GB+ available space
+2. **Model Download Failures**: Check internet connectivity and retry
+3. **Service Start Failures**: Verify configuration file syntax
+4. **Port Conflicts**: Default port 8080 may conflict with MeshtasticD or other services
+   - Edit `/etc/local-rag/config.yaml` and change `api.port` to 8081, 8082, or 9080
+   - Restart service: `sudo systemctl restart local-rag`
+   - Update CORS origins to match: `cors_origins: ["http://localhost:8081"]`
+
+#### Performance Optimization
+
+1. **Memory Management**: Adjust `max_ram_mb` in config for system constraints
+2. **CPU Optimization**: Configure `threads` setting for available cores  
+3. **Storage Performance**: Use SSD instead of microSD for better I/O
+4. **Model Selection**: Choose smaller models for resource-constrained systems
+
+#### Recovery Procedures
+
+1. **Service Recovery**: `sudo systemctl restart local-rag`
+2. **Configuration Reset**: Restore default config from `/usr/share/local-rag/config.yaml.example`
+3. **Database Corruption**: Use `local-rag rebuild-vectors` to recreate embeddings
+4. **Complete Reset**: Purge package and reinstall with `apt purge local-rag`
 
 ## Complexity Tracking
 
