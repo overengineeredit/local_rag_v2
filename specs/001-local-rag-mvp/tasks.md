@@ -12,9 +12,11 @@
 This project follows a 4-milestone development strategy with concrete deliverables and success criteria for each phase:
 
 ### Milestone 1: Core Infrastructure and MVP (4-6 weeks)
+
 **Goal**: Basic working system with essential RAG functionality
 
 **Deliverables**:
+
 - Single Python application with embedded LLM and vector DB
 - APT package for installation on Pi5 and AMD64
 - Systemd service integration
@@ -22,6 +24,7 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - Content ingestion via CLI
 
 **Definition of Done**:
+
 - [ ] `.deb` package installs cleanly on Pi5 and AMD64
 - [ ] `systemctl start local-rag` launches the service successfully
 - [ ] Web UI accessible at `http://localhost:8080`
@@ -32,9 +35,11 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] Logging configured with rotation
 
 ### Milestone 2: Content Management and Robustness (3-4 weeks)
+
 **Goal**: Robust content operations with deduplication and metadata
 
 **Deliverables**:
+
 - Advanced content ingestion (URLs, HTML, batches)
 - Deduplication and metadata management
 - Content update/delete operations
@@ -42,6 +47,7 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - Resource limit enforcement
 
 **Definition of Done**:
+
 - [ ] Can import content from URLs and HTML files
 - [ ] Batch import from folders with progress reporting
 - [ ] Duplicate content detected and logged appropriately
@@ -53,9 +59,11 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] Metadata properly stored and searchable
 
 ### Milestone 3: Testing and Developer Experience (2-3 weeks)
+
 **Goal**: Comprehensive testing and documentation for maintainability
 
 **Deliverables**:
+
 - Unit test suite with high coverage
 - BDD acceptance tests
 - Developer documentation
@@ -63,6 +71,7 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - Contribution guidelines
 
 **Definition of Done**:
+
 - [ ] Unit tests cover all core modules (>85% coverage)
 - [ ] BDD tests validate all user scenarios
 - [ ] Integration tests verify API and CLI functionality
@@ -73,9 +82,11 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] CI/CD pipeline builds and tests both architectures
 
 ### Milestone 4: Performance and User Experience (2-3 weeks)
+
 **Goal**: Optimize performance and improve user interface
 
 **Deliverables**:
+
 - Performance optimizations for Pi5
 - Enhanced web UI with better UX
 - Streaming response display
@@ -83,6 +94,7 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - Configuration validation
 
 **Definition of Done**:
+
 - [ ] Response times optimized for Pi5 constraints
 - [ ] Web UI shows streaming responses in real-time
 - [ ] Error messages are clear and actionable
@@ -121,7 +133,7 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
 - [ ] T006 Setup ChromaDB embedded configuration and initialization in src/guide/vector_store.py
-- [ ] T007 [P] Implement configuration management with YAML loading in src/guide/__init__.py
+- [ ] T007 [P] Implement configuration management with YAML loading in src/guide/**init**.py
 - [ ] T008 [P] Setup logging infrastructure with JSON formatting and rotation in src/guide/main.py
 - [ ] T009 [P] Create base FastAPI application structure in src/guide/main.py
 - [ ] T010 Create error handling middleware and exception classes in src/guide/web_interface.py

@@ -6,12 +6,14 @@
 ## Prerequisites
 
 ### System Requirements
+
 - **Hardware**: Raspberry Pi 5 (4GB+ RAM) or AMD64 Linux system (4GB+ RAM)
 - **OS**: Ubuntu 22.04 LTS, Debian 12, or compatible APT-based distribution
 - **Storage**: 10GB+ available space (more for large document collections)
 - **Network**: Internet connection for initial installation and model download
 
 ### Dependencies (Auto-installed)
+
 - Python 3.11+
 - SystemD (for service management)
 - APT package manager
@@ -246,6 +248,7 @@ sudo journalctl -u local-rag -f
 ### Common Issues
 
 **Service won't start:**
+
 ```bash
 # Check logs
 sudo journalctl -u local-rag -n 50
@@ -257,11 +260,13 @@ sudo journalctl -u local-rag -n 50
 ```
 
 **Slow responses:**
+
 - Reduce `context_size` and `max_tokens` in config
 - Ensure sufficient RAM available
 - Consider using a smaller/quantized model
 
 **Import failures:**
+
 ```bash
 # Check file permissions
 ls -la /var/lib/local-rag/
@@ -306,6 +311,7 @@ watch -n 5 'curl -s http://localhost:8080/health | jq'
 - **Input Validation**: All user inputs are validated and sanitized
 
 For production deployments, consider:
+
 - Setting up reverse proxy with HTTPS
 - Implementing rate limiting
 - Regular security updates via APT package manager

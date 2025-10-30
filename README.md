@@ -37,7 +37,7 @@ This repository implements a **comprehensive, production-ready** local RAG syste
 
 ## Architecture Overview
 
-```
+``` txt
 ┌─────────────────────────────────────────────┐
 │             Production System               │
 │                                             │
@@ -100,18 +100,15 @@ local-rag check-updates                    # Automated update detection
 local-rag update --resume                  # Resumable operations
 local-rag download-model deepseek-r1       # Model management
 local-rag backup --encrypt /secure/path    # Enterprise backup
-```
-
 local-rag list --show-updates # View content status
 local-rag query "What is this about?"
 
 # Access web interface at http://localhost:8080
-
-````
+```
 
 ## Repository Layout
 
-```text
+``` txt
 specs/                 — SpecKit-compliant feature specifications
 ├── 001-local-rag-mvp/ — Current feature implementation
 │   ├── spec.md        — User stories and requirements

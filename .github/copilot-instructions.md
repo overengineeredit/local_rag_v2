@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2025-10-28
 
 ## Active Technologies
+- ChromaDB with SQLite backend for vector embeddings, filesystem for models and configuration (001-local-rag-mvp)
 
 - Python 3.11+ + FastAPI, llama-cpp-python, ChromaDB, uvicorn, pydantic, rich (CLI) (001-local-rag-mvp)
 
@@ -22,6 +23,7 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+: Follow standard conventions
 
 ## Recent Changes
+- 001-local-rag-mvp: Added Python 3.11+ + FastAPI, llama-cpp-python, ChromaDB, uvicorn, pydantic, rich (CLI)
 
 - 001-local-rag-mvp: Added Python 3.11+ + FastAPI, llama-cpp-python, ChromaDB, uvicorn, pydantic, rich (CLI)
 
