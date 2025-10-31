@@ -240,6 +240,9 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] T039 [P] [US3] Integration test for URL content processing and change detection in tests/integration/test_url_import.py
 - [ ] T040 [P] [US3] Integration test for dual hash deduplication and update detection in tests/integration/test_change_detection.py
 - [ ] T041 [P] [US3] Integration test for update checking without re-import in tests/integration/test_update_check.py
+- [ ] T041a [P] [US3] Acceptance test for progress tracking during batch import in tests/integration/test_progress_tracking.py
+- [ ] T041b [P] [US3] Acceptance test for import resumability after interruption in tests/integration/test_resumable_import.py
+- [ ] T041c [P] [US3] Acceptance test for cross-source deduplication validation in tests/integration/test_deduplication_validation.py
 
 ### Implementation for User Story 3
 
@@ -253,6 +256,9 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] T049 [US3] Implement import summary with change/duplicate/unchanged categorization in src/guide/content_manager.py
 - [ ] T050 [US3] Add CLI commands for update checking and selective re-import in src/guide/cli.py
 - [ ] T051 [US3] Add progress tracking UI for batch operations and update status in src/guide/web_interface.py
+- [ ] T051a [US3] Implement import checkpoint system for resumability every 10 documents in src/guide/content_manager.py
+- [ ] T051b [US3] Implement detailed import summary with categorization (new/updated/unchanged/failed) in src/guide/content_manager.py
+- [ ] T051c [US3] Add content metadata extraction validation (title, source URI, timestamps) in src/guide/content_manager.py
 
 **Checkpoint**: All core import functionality should now be independently functional
 
@@ -269,6 +275,9 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] T052 [P] [US4] Contract test for content listing API in tests/integration/test_content_list_api.py
 - [ ] T053 [P] [US4] Contract test for content soft-delete API in tests/integration/test_content_delete_api.py
 - [ ] T054 [P] [US4] Integration test for CLI content management in tests/integration/test_cli_content.py
+- [ ] T054a [P] [US4] Acceptance test for content metadata display with timestamps in tests/integration/test_content_metadata.py
+- [ ] T054b [P] [US4] Acceptance test for soft-deleted content exclusion from queries in tests/integration/test_soft_delete_exclusion.py
+- [ ] T054c [P] [US4] Acceptance test for system reset with confirmation in tests/integration/test_system_reset.py
 
 ### Implementation for User Story 4
 
@@ -280,6 +289,9 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] T060 [US4] Implement CLI command for system reset in src/guide/cli.py
 - [ ] T061 [US4] Add content management UI pages with update tracking in src/guide/web_interface.py
 - [ ] T062 [US4] Implement document status filtering and search in src/guide/vector_store.py
+- [ ] T062a [US4] Implement document metadata display with creation/update timestamps in src/guide/web_interface.py
+- [ ] T062b [US4] Add content source tracking and attribution display in src/guide/vector_store.py
+- [ ] T062c [US4] Implement comprehensive content statistics reporting in src/guide/cli.py
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -300,18 +312,28 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 - [ ] T070 [P] Add metrics and monitoring endpoints per NFR-012 (monitoring requirement) and health check infrastructure in src/guide/web_interface.py (CPU usage, memory consumption, query count, response times, document count, inference duration)
 - [ ] T071 [P] Implement configuration validation and startup checks in src/guide/main.py
 - [ ] T072 [P] Add power-loss resilience testing and corruption recovery validation
+- [ ] T072a [P] Create comprehensive edge case integration test suite covering all FR-022 through FR-030 scenarios in tests/integration/test_comprehensive_edge_cases.py: disk space exhaustion, model corruption, power loss recovery, soft-delete exclusion, memory failures, large documents, database corruption, malicious content, and port conflicts with end-to-end validation
 
 ### Edge Case Handling Tasks
 
 - [ ] T073 [P] Implement disk space monitoring and graceful degradation per FR-022: check available space before import operations, warn at 90% capacity, halt imports at 95% capacity with user notification in src/guide/content_manager.py. Success criteria: disk usage monitoring active, warnings logged and displayed, import halted appropriately
+- [ ] T073a [P] Add edge case test for disk space exhaustion during import in tests/integration/test_disk_space_edge_cases.py
 - [ ] T074 [P] Add corrupted model file detection and recovery guidance per FR-023: GGUF header validation, file size verification, clear error messages with model redownload instructions in src/guide/llm_interface.py. Success criteria: corrupted files detected on startup, recovery guidance provided, model redownload functionality working
+- [ ] T074a [P] Add edge case test for corrupted model file handling in tests/integration/test_model_corruption_edge_cases.py
 - [ ] T075 [P] Implement graceful power loss recovery with atomic operations per FR-024: use ChromaDB transactions, verify database integrity on startup, implement rollback for incomplete operations in src/guide/vector_store.py. Success criteria: database integrity preserved after power loss, automatic recovery functional, incomplete operations cleaned up
+- [ ] T075a [P] Add edge case test for power loss during document processing in tests/integration/test_power_loss_edge_cases.py
 - [ ] T076 [P] Add handling for soft-deleted content queries per FR-025: filter deleted content from search results, log access attempts, provide "content unavailable" messages in src/guide/vector_store.py. Success criteria: deleted content excluded from queries, appropriate user feedback provided, access attempts logged
+- [ ] T076a [P] Add edge case test for soft-deleted content query exclusion in tests/integration/test_soft_delete_edge_cases.py
 - [ ] T077 [P] Implement LLM memory failure detection and fallback strategies per FR-026: catch OOM exceptions, reduce model parameters, provide clear memory requirement guidance in src/guide/llm_interface.py. Success criteria: OOM exceptions caught gracefully, fallback strategies functional, clear guidance provided to user
+- [ ] T077a [P] Add edge case test for insufficient memory scenarios in tests/integration/test_memory_failure_edge_cases.py
 - [ ] T078 [P] Add large document chunking with context window management per FR-027: enforce maximum chunk size limits, implement sliding window overlap, handle documents exceeding context limits in src/guide/content_manager.py. Success criteria: large documents chunked properly, context limits enforced, overlapping chunks created correctly
+- [ ] T078a [P] Add edge case test for very large document processing in tests/integration/test_large_document_edge_cases.py
 - [ ] T079 [P] Implement ChromaDB corruption detection and repair procedures per FR-028: database integrity checks, backup restoration, rebuild vector index capability in src/guide/vector_store.py. Success criteria: corruption detected automatically, repair procedures functional, backup/restore working correctly
+- [ ] T079a [P] Add edge case test for database corruption scenarios in tests/integration/test_database_corruption_edge_cases.py
 - [ ] T080 [P] Add malicious content detection and sanitization during import per FR-029: file size limits (max 100MB), content type validation, malformed encoding detection in src/guide/content_manager.py. Success criteria: file size limits enforced, content types validated, malformed content rejected safely
+- [ ] T080a [P] Add edge case test for malicious content handling in tests/integration/test_malicious_content_edge_cases.py
 - [ ] T081 [P] Implement configurable API port binding per FR-030: allow port configuration via config file and environment variables, detect port conflicts, provide clear error messages for unavailable ports in src/guide/main.py. Success criteria: port configurable, conflicts detected, clear error guidance provided
+- [ ] T081a [P] Add edge case test for port conflict scenarios in tests/integration/test_port_conflict_edge_cases.py
 
 - [ ] T081 [P] Implement configurable API port binding per FR-030: allow port configuration via config file and environment variables, detect port conflicts, provide clear error messages for unavailable ports in src/guide/main.py. Success criteria: port configurable, conflicts detected, clear error guidance provided
 
