@@ -27,7 +27,7 @@ A user can upload text documents to the system and ask questions about their con
 
 A user can install the system via APT package manager and manage it as a systemd service on both Raspberry Pi 5 (ARM64) and AMD64 systems.
 
-**Why this priority**: Easy installation and service management is essential for user adoption and operational reliability.
+**Why this priority**: Easy installation and systemd service management is essential for user adoption and operational reliability.
 
 **Independent Test**: Can be fully tested by installing the .deb package on a clean system, starting the service, and verifying it's accessible at localhost:8080.
 
@@ -93,8 +93,8 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 - **FR-004**: System MUST use llama-cpp-python for local LLM inference with GGUF models
 - **FR-005**: System MUST ingest plain text, HTML, and URLs (batch, file, or folder) into ChromaDB
 - **FR-006**: System MUST use ChromaDB with embedded SQLite backend for vector storage
-- **FR-007**: System MUST store metadata including title, source URI, timestamps, and dual hash system for deduplication and change detection
-- **FR-008**: System MUST implement dual hash strategy: source_hash (URI + metadata + content) for change detection and content_hash (content only) for cross-source deduplication
+- **FR-007**: System MUST store metadata including title, source URI, timestamps for content management
+- **FR-008**: System MUST implement dual hash system: source_hash (SHA-256 of URI + metadata + content, e.g., `https://example.com/doc.txt` + `last-modified:2025-10-30` + content) for change detection and content_hash (SHA-256 of normalized content only) for cross-source deduplication. Content normalization algorithm: (1) Convert encoding to UTF-8, (2) Normalize line endings to \n, (3) Strip leading/trailing whitespace from each line, (4) Remove empty lines at start/end of document, (5) Ensure single final newline. Example: same article from RSS feed and direct URL will have different source_hash but identical content_hash after normalization.
 - **FR-009**: System MUST detect content updates at source and provide update mechanisms without requiring full re-import
 - **FR-010**: System MUST support content updates by comparing source metadata (mtime, etag) and re-importing only changed content
 - **FR-011**: System MUST provide soft delete functionality for content management
@@ -102,23 +102,35 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 - **FR-013**: System MUST provide systemd service for starting/stopping the application
 - **FR-014**: System MUST store all configuration in `/etc/local-rag/config.yaml`
 - **FR-015**: System MUST store models in `/var/lib/local-rag/models/`
-- **FR-016**: System MUST provide health check API endpoint (`/health`) and CLI command
+- **FR-016**: System MUST provide health check capabilities via API endpoint (`/health`) returning JSON status of all components (LLM model, ChromaDB, disk space, memory usage) and corresponding CLI command (`local-rag status`) with human-readable output and detailed diagnostics option (`--verbose`)
 - **FR-017**: System MUST implement CLI commands for content operations communicating via API
-- **FR-018**: System MUST be battery-friendly with low idle power draw and thermal management to prevent hardware damage
-- **FR-019**: System MUST survive ungraceful power loss without corrupting state
+- **FR-018**: System MUST be battery-friendly with power consumption under 5W during idle operation and under 25W during inference, implementing thermal management to prevent hardware damage
+- **FR-019**: System MUST survive ungraceful power loss without corrupting state using: (1) ChromaDB ACID transactions for all write operations, (2) Write-ahead logging (WAL) for configuration changes, (3) Atomic file operations for model downloads with .tmp suffix during transfer, (4) Database integrity validation on startup with automatic repair, (5) Import operation checkpointing every 10 documents for resumability, and (6) Configuration file backup before modifications with automatic rollback on corruption detection
 - **FR-020**: System MUST support both ARM64 (Pi5) and AMD64 architectures
-- **FR-021**: System MUST implement JSON-formatted logging with configurable levels and rotation
+- **FR-021**: System MUST implement JSON-formatted logging with configurable levels, disk + stdout output, and rotation. JSON schema MUST include: `timestamp` (ISO 8601), `level` (DEBUG/INFO/WARN/ERROR), `module` (component name), `message` (log content), `request_id` (for API tracing), optional `user_id`, `duration_ms` (for operations), `error_code` (for errors), and `context` (additional metadata). Log retention MUST be 5 files of 10MB each with automatic rotation.
+
+#### Edge Case Requirements
+
+- **FR-022**: System MUST monitor available disk space and halt document import when <5% space remaining, resuming when >10% space available
+- **FR-023**: System MUST validate GGUF model file integrity on startup using file size and header validation, providing clear recovery instructions for corrupted files
+- **FR-024**: System MUST implement atomic database operations with automatic rollback for incomplete transactions, ensuring no data corruption during power loss
+- **FR-025**: System MUST exclude soft-deleted content from all query results and provide "content unavailable" messages when deleted content is referenced
+- **FR-026**: System MUST detect insufficient memory for LLM loading and provide clear guidance on memory requirements and model alternatives
+- **FR-027**: System MUST chunk documents exceeding context windows using sliding overlap technique, ensuring no content loss for large documents
+- **FR-028**: System MUST detect ChromaDB corruption on startup and provide automatic repair procedures with backup restoration capability
+- **FR-029**: System MUST validate content during import with file size limits (100MB max), content type validation, and malformed encoding detection
+- **FR-030**: System MUST provide configurable API port to avoid conflicts with other services (MeshtasticD, development servers, web proxies)
 
 ### Non-Functional Requirements
 
 #### Performance Requirements
 
-- **NFR-001**: Performance - Cold start (first query) MUST complete first token within 3-5 minutes on Pi5
-- **NFR-002**: Performance - Warm queries MUST complete first token within 1-3 minutes on Pi5, reading-speed streaming thereafter
-- **NFR-003**: Performance - Desktop/AMD64 MUST achieve first token within 5 seconds (P50), 15 seconds (P95), with 30 seconds maximum timeout (reference comparison)
+- **NFR-001**: Performance - Cold start (first query after system boot) MUST complete first token within 4 minutes (P50), 5 minutes (P95) on Pi5 with standardized baseline conditions: (1) System idle state verified by <5% CPU usage for 60 seconds measured via `/proc/stat`, (2) Single concurrent query with no background imports, (3) 2-3 document context retrieval (512-token chunks), (4) Measurement from query submission to first token via FastAPI response streaming, (5) Test environment: clean Pi5 8GB, 64GB Class 10 microSD, adequate cooling maintaining <70°C, (6) Measured over 20 query samples with median (P50) and 95th percentile (P95) calculation
+- **NFR-002**: Performance - Warm queries (subsequent queries after initial model load) MUST complete first token within 90 seconds (P50), 3 minutes (P95) on Pi5 with standardized baseline conditions: (1) Model already loaded in memory verified by successful prior query completion, (2) CPU temperature <70°C measured via `/sys/class/thermal/thermal_zone0/temp`, (3) Single concurrent query with no background processing, (4) Measurement methodology identical to NFR-001, (5) Test with same hardware configuration as NFR-001, (6) Streaming response continues at reading speed (1-5 tokens/second) after first token
+- **NFR-003**: Performance - Desktop/AMD64 MUST achieve first token within 5 seconds (P50), 15 seconds (P95) with standardized baseline conditions: (1) Hardware specification: Intel/AMD CPU 4+ cores 2.5GHz+, 16GB+ DDR4 RAM, NVMe SSD with >500MB/s sequential read, (2) CPU temperature <60°C measured via hardware monitoring, (3) Single concurrent query with clean system state, (4) Measurement methodology identical to NFR-001/NFR-002, (5) 30 seconds maximum timeout (P99) with graceful failure, (6) Test environment: Ubuntu 22.04 LTS, no competing processes >5% CPU
 - **NFR-004**: Resource Limits - Memory usage MUST stay under 6GB on Pi5, configurable for other systems
-- **NFR-005**: Storage Performance - System MUST scale predictably with content (100+ documents, 2K-10K words each)
-- **NFR-006**: Thermal Management - System MUST monitor CPU temperature via /sys/class/thermal/thermal_zone*/temp, throttle inference threads when >75°C, and halt processing when >85°C with user notification
+- **NFR-005**: Storage Performance - System MUST scale predictably with content (100+ documents, 2K-10K words each) with less than 5% performance degradation per 100 additional documents measured against baseline of 10 documents and linear storage growth. Performance metrics: query response time (first token latency), document ingestion speed, and memory usage during retrieval operations
+- **NFR-006**: Thermal Management - System MUST monitor CPU temperature via /sys/class/thermal/thermal_zone*/temp every 30 seconds with 3-sample rolling average (arithmetic mean of last 3 readings), throttle inference threads when average >75°C, and halt processing when average >85°C with user notification. During throttling, temperature monitoring continues at same 30-second intervals to enable timely recovery when temperature drops below 70°C.
 
 #### User Interface Requirements
 
@@ -128,10 +140,9 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 
 #### System Quality Requirements
 
-- **NFR-010**: Logging - System MUST use JSON format with configurable levels, disk + stdout output, with rotation
 - **NFR-011**: Resource Management - System MUST provide configurable RAM/disk usage limits with graceful backoff
 - **NFR-012**: Monitoring - System MUST provide health checks via API endpoint and CLI command  
-- **NFR-013**: Reliability - System MUST handle component failures gracefully with user-friendly error messages
+- **NFR-013**: Reliability - System MUST handle component failures gracefully with user-friendly error messages: LLM inference failures (retry 3x with exponential backoff), ChromaDB corruption (attempt repair, fallback to read-only), model loading failures (clear error with path validation), network timeouts during URL import (continue with other sources). Error messages must include specific problem description and actionable recovery steps.
 - **NFR-014**: Power Resilience - System MUST survive ungraceful power loss without state corruption
 - **NFR-015**: Battery Efficiency - System MUST maintain low idle power draw for battery-powered operation
 
@@ -147,7 +158,7 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 - **Document**: Represents ingested content with metadata including id, title, source, content_hash, timestamp, chunk_count, and status
 - **Chunk**: Vector-embedded piece of document content stored in ChromaDB with similarity search capabilities
 - **Query**: User-submitted textual prompt that triggers retrieval and generation workflow
-- **Model**: GGUF-format LLM stored locally and loaded via llama-cpp-python
+- **Model**: GGUF-format LLM stored locally and loaded via llama-cpp-python (default: deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf)
 - **Configuration**: YAML-based settings for LLM parameters, vector DB settings, API configuration, and logging options
 
 ## Success Criteria *(mandatory)*
@@ -160,7 +171,7 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 
 - **SC-001**: Users can complete system installation via single APT command on clean Pi5/AMD64 Debian-based systems within 5 minutes
 - **SC-002**: System handles 100+ documents (2K-10K words each) without performance degradation  
-- **SC-003**: System achieves 90% successful completion rate for core workflow: document import completes without errors AND queries against imported content return responses with source citations within performance targets
+- **SC-003**: System achieves 90% successful completion rate for core workflow measured over 100 query attempts within 24-hour period where success = (document import completes without exceptions + stored in ChromaDB + query returns relevant response + response includes source attribution + completed within performance targets); failure = any step fails or times out
 - **SC-004**: Content change detection achieves 100% accuracy for file modifications (mtime) and web content updates (etag/last-modified headers)
 - **SC-005**: Update checking completes within 30 seconds for 100+ sources and accurately identifies changed vs unchanged content
 - **SC-006**: System recovers gracefully from power loss without data corruption or requiring manual repair
@@ -179,3 +190,6 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 - **SC-013**: Thermal throttling prevents hardware damage on Pi5 during sustained operation
 - **SC-014**: Import operations can be resumed after interruption without data loss
 - **SC-015**: All components fail gracefully with informative error messages and recovery guidance
+- **SC-016**: Edge case handling achieves 100% detection rate for critical scenarios: disk space exhaustion, model corruption, power loss recovery, and memory failures
+- **SC-017**: System correctly excludes soft-deleted content from query results with appropriate user feedback
+- **SC-018**: ChromaDB corruption is automatically detected and repaired without data loss
