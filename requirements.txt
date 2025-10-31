@@ -7,7 +7,7 @@ sentence-transformers==2.2.2
 
 # Utilities
 rich==13.9.2
-numpy==2.0.2
+numpy<2.0  # ChromaDB compatibility
 pydantic==2.5.0
 pyyaml==6.0.1
 httpx==0.25.2
