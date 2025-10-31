@@ -104,7 +104,7 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 - **FR-015**: System MUST store models in `/var/lib/local-rag/models/`
 - **FR-016**: System MUST provide health check API endpoint (`/health`) and CLI command
 - **FR-017**: System MUST implement CLI commands for content operations communicating via API
-- **FR-018**: System MUST be battery-friendly with low idle power draw and predictable thermal envelope
+- **FR-018**: System MUST be battery-friendly with low idle power draw and thermal management to prevent hardware damage
 - **FR-019**: System MUST survive ungraceful power loss without corrupting state
 - **FR-020**: System MUST support both ARM64 (Pi5) and AMD64 architectures
 - **FR-021**: System MUST implement JSON-formatted logging with configurable levels and rotation
@@ -115,10 +115,10 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 
 - **NFR-001**: Performance - Cold start (first query) MUST complete first token within 3-5 minutes on Pi5
 - **NFR-002**: Performance - Warm queries MUST complete first token within 1-3 minutes on Pi5, reading-speed streaming thereafter
-- **NFR-003**: Performance - Desktop/AMD64 MUST achieve sub-second to 30 seconds for first token (reference comparison)
+- **NFR-003**: Performance - Desktop/AMD64 MUST achieve first token within 5 seconds (P50), 15 seconds (P95), with 30 seconds maximum timeout (reference comparison)
 - **NFR-004**: Resource Limits - Memory usage MUST stay under 6GB on Pi5, configurable for other systems
 - **NFR-005**: Storage Performance - System MUST scale predictably with content (100+ documents, 2K-10K words each)
-- **NFR-006**: Thermal Management - System MUST maintain predictable thermal envelope on Pi5 with monitoring
+- **NFR-006**: Thermal Management - System MUST monitor CPU temperature via /sys/class/thermal/thermal_zone*/temp, throttle inference threads when >75°C, and halt processing when >85°C with user notification
 
 #### User Interface Requirements
 
@@ -168,7 +168,7 @@ A user can manage their knowledge base by viewing, updating, and deleting conten
 #### Performance Success Metrics
 
 - **SC-007**: Query responses achieve target performance: Pi5 cold start 3-5 minutes, warm queries 1-3 minutes for first token
-- **SC-008**: Desktop/AMD64 achieves sub-second to 30 seconds for first token generation
+- **SC-008**: Desktop/AMD64 achieves first token within 5 seconds for 50% of queries, within 15 seconds for 95% of queries, with maximum 30-second timeout
 - **SC-009**: Memory usage remains under 6GB on Pi5 systems during typical operation
 - **SC-010**: Web UI remains responsive on 720p displays across Chrome and Firefox browsers
 - **SC-011**: Health check endpoint responds within 5 seconds and accurately reports component status
