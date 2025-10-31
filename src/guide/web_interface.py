@@ -6,21 +6,61 @@ Handles query processing, content management, and system administration.
 from __future__ import annotations
 
 import logging
+import traceback
+from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, JSONResponse
+from pydantic import BaseModel, ValidationError
 
+from . import config
 from .content_manager import ContentManager
 
 logger = logging.getLogger(__name__)
 
 
+# Custom Exception Classes
+class LocalRAGException(Exception):
+    """Base exception for Local RAG system."""
+    
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
+        self.message = message
+        self.details = details or {}
+        super().__init__(self.message)
+
+
+class ConfigurationError(LocalRAGException):
+    """Configuration-related errors."""
+    pass
+
+
+class VectorStoreError(LocalRAGException):
+    """Vector store operation errors."""
+    pass
+
+
+class LLMError(LocalRAGException):
+    """LLM operation errors."""
+    pass
+
+
+class ContentProcessingError(LocalRAGException):
+    """Content processing and ingestion errors."""
+    pass
+
+
+class ResourceLimitError(LocalRAGException):
+    """Resource limit exceeded errors."""
+    pass
+
+
+# Request/Response Models
 class QueryRequest(BaseModel):
     """Request model for user queries."""
 
     query: str
     max_results: int = 5
+    include_sources: bool = True
 
 
 class ImportRequest(BaseModel):
@@ -28,10 +68,134 @@ class ImportRequest(BaseModel):
 
     source: str
     source_type: str = "file"  # file, directory, url
+    chunk_size: int | None = None
+    chunk_overlap: int | None = None
+
+
+class ErrorResponse(BaseModel):
+    """Standard error response model."""
+    
+    error: str
+    message: str
+    details: dict[str, Any] | None = None
+    request_id: str | None = None
+
+
+# Error Handler Functions
+async def handle_local_rag_exception(request: Request, exc: LocalRAGException) -> JSONResponse:
+    """Handle Local RAG specific exceptions."""
+    logger.error(
+        "Local RAG error occurred",
+        extra={
+            "error_type": type(exc).__name__,
+            "message": exc.message,
+            "details": exc.details,
+            "path": str(request.url),
+            "method": request.method
+        }
+    )
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=ErrorResponse(
+            error=type(exc).__name__,
+            message=exc.message,
+            details=exc.details
+        ).dict()
+    )
+
+
+async def handle_http_exception(request: Request, exc: HTTPException) -> JSONResponse:
+    """Handle FastAPI HTTP exceptions."""
+    logger.warning(
+        "HTTP exception occurred",
+        extra={
+            "status_code": exc.status_code,
+            "detail": exc.detail,
+            "path": str(request.url),
+            "method": request.method
+        }
+    )
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ErrorResponse(
+            error="HTTPException",
+            message=str(exc.detail)
+        ).dict()
+    )
+
+
+async def handle_validation_error(request: Request, exc: ValidationError) -> JSONResponse:
+    """Handle Pydantic validation errors."""
+    logger.warning(
+        "Validation error occurred",
+        extra={
+            "errors": exc.errors(),
+            "path": str(request.url),
+            "method": request.method
+        }
+    )
+    
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=ErrorResponse(
+            error="ValidationError",
+            message="Request validation failed",
+            details={"validation_errors": exc.errors()}
+        ).dict()
+    )
+
+
+async def handle_general_exception(request: Request, exc: Exception) -> JSONResponse:
+    """Handle all other exceptions."""
+    logger.error(
+        "Unexpected error occurred",
+        extra={
+            "error_type": type(exc).__name__,
+            "message": str(exc),
+            "path": str(request.url),
+            "method": request.method,
+            "traceback": traceback.format_exc()
+        }
+    )
+    
+    # Don't expose internal error details in production
+    message = str(exc) if config.get("server.debug", False) else "Internal server error"
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=ErrorResponse(
+            error="InternalServerError",
+            message=message
+        ).dict()
+    )
+
+
+def setup_error_handlers(app: FastAPI) -> None:
+    """Setup global error handlers for the application."""
+    
+    # Local RAG specific exceptions
+    app.add_exception_handler(LocalRAGException, handle_local_rag_exception)
+    app.add_exception_handler(ConfigurationError, handle_local_rag_exception)
+    app.add_exception_handler(VectorStoreError, handle_local_rag_exception)
+    app.add_exception_handler(LLMError, handle_local_rag_exception)
+    app.add_exception_handler(ContentProcessingError, handle_local_rag_exception)
+    app.add_exception_handler(ResourceLimitError, handle_local_rag_exception)
+    
+    # Standard FastAPI exceptions
+    app.add_exception_handler(HTTPException, handle_http_exception)
+    app.add_exception_handler(ValidationError, handle_validation_error)
+    
+    # Catch-all for unexpected exceptions
+    app.add_exception_handler(Exception, handle_general_exception)
 
 
 def setup_routes(app: FastAPI) -> None:
     """Setup all API routes for the application."""
+    
+    # Setup error handlers first
+    setup_error_handlers(app)
 
     # Initialize core components (TODO: move to dependency injection)
     llm = None  # Will be initialized with actual config
@@ -58,6 +222,10 @@ def setup_routes(app: FastAPI) -> None:
                     background: #f5f5f5; padding: 20px; margin: 20px 0;
                     white-space: pre-wrap;
                 }
+                .error {
+                    background: #ffe6e6; border: 1px solid #ff9999; padding: 15px;
+                    margin: 10px 0; border-radius: 4px;
+                }
             </style>
         </head>
         <body>
@@ -68,6 +236,7 @@ def setup_routes(app: FastAPI) -> None:
                     <button type="submit">Ask Question</button>
                 </form>
                 <div id="response" class="response" style="display: none;"></div>
+                <div id="error" class="error" style="display: none;"></div>
 
                 <h2>Content Management</h2>
                 <form id="importForm">
@@ -82,18 +251,55 @@ def setup_routes(app: FastAPI) -> None:
             </div>
 
             <script>
-                // Basic JavaScript for form handling (TODO: enhance)
+                // Enhanced JavaScript with error handling
+                async function handleResponse(response) {
+                    const responseDiv = document.getElementById('response');
+                    const errorDiv = document.getElementById('error');
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        responseDiv.style.display = 'block';
+                        errorDiv.style.display = 'none';
+                        responseDiv.textContent = JSON.stringify(result, null, 2);
+                    } else {
+                        const error = await response.json();
+                        errorDiv.style.display = 'block';
+                        responseDiv.style.display = 'none';
+                        errorDiv.textContent = `Error: ${error.message || 'Unknown error'}`;
+                    }
+                }
+                
                 document.getElementById('queryForm').onsubmit = async (e) => {
                     e.preventDefault();
                     const query = document.getElementById('query').value;
-                    const response = await fetch('/api/query', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({query})
-                    });
-                    const result = await response.text();
-                    document.getElementById('response').style.display = 'block';
-                    document.getElementById('response').textContent = result;
+                    try {
+                        const response = await fetch('/api/query', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({query})
+                        });
+                        await handleResponse(response);
+                    } catch (err) {
+                        document.getElementById('error').style.display = 'block';
+                        document.getElementById('error').textContent = `Network error: ${err.message}`;
+                    }
+                };
+                
+                document.getElementById('importForm').onsubmit = async (e) => {
+                    e.preventDefault();
+                    const source = document.getElementById('source').value;
+                    const sourceType = document.getElementById('sourceType').value;
+                    try {
+                        const response = await fetch('/api/import', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({source, source_type: sourceType})
+                        });
+                        await handleResponse(response);
+                    } catch (err) {
+                        document.getElementById('error').style.display = 'block';
+                        document.getElementById('error').textContent = `Network error: ${err.message}`;
+                    }
                 };
             </script>
         </body>
@@ -102,25 +308,70 @@ def setup_routes(app: FastAPI) -> None:
 
     @app.get("/health")
     async def health_check():
-        """Health check endpoint."""
-        return {
-            "status": "ok",
-            "service": "local-rag",
-            "components": {
-                "llm": llm.health_check() if llm else {"status": "not_initialized"},
-                "vector_store": vector_store.health_check()
-                if vector_store
-                else {"status": "not_initialized"},
-            },
-        }
+        """Health check endpoint with comprehensive component status."""
+        try:
+            components = {}
+            
+            # Check LLM status
+            if llm:
+                try:
+                    components["llm"] = llm.health_check()
+                except Exception as e:
+                    components["llm"] = {"status": "error", "error": str(e)}
+            else:
+                components["llm"] = {"status": "not_initialized"}
+            
+            # Check vector store status
+            if vector_store:
+                try:
+                    components["vector_store"] = vector_store.health_check()
+                except Exception as e:
+                    components["vector_store"] = {"status": "error", "error": str(e)}
+            else:
+                components["vector_store"] = {"status": "not_initialized"}
+            
+            # Check content manager
+            components["content_manager"] = {"status": "ok"}
+            
+            # Check configuration
+            config_issues = config.validate()
+            components["configuration"] = {
+                "status": "ok" if not config_issues else "warning",
+                "issues": config_issues
+            }
+            
+            # Overall status
+            overall_status = "healthy"
+            for component in components.values():
+                if component.get("status") == "error":
+                    overall_status = "unhealthy"
+                    break
+                elif component.get("status") in ["warning", "not_initialized"]:
+                    overall_status = "degraded"
+                    
+            return {
+                "status": overall_status,
+                "service": "local-rag",
+                "version": "1.0.0",
+                "components": components
+            }
+            
+        except Exception as e:
+            logger.error("Health check failed", exc_info=True)
+            raise LocalRAGException("Health check failed", {"error": str(e)})
 
     @app.post("/api/query")
     async def query(request: QueryRequest):
         """Process user query and return response."""
         if not llm or not vector_store:
-            raise HTTPException(status_code=503, detail="System not initialized")
+            raise ConfigurationError("System not fully initialized", {
+                "llm_ready": llm is not None,
+                "vector_store_ready": vector_store is not None
+            })
 
         try:
+            logger.info(f"Processing query: {request.query[:100]}...")
+            
             # Search for relevant context
             search_results = vector_store.search(request.query, request.max_results)
             context = "\n\n".join([doc["content"] for doc in search_results])
@@ -129,59 +380,100 @@ def setup_routes(app: FastAPI) -> None:
             response_tokens = list(llm.generate(request.query, context))
             response = "".join(response_tokens)
 
-            return {"response": response, "sources": search_results}
+            result = {"response": response}
+            if request.include_sources:
+                result["sources"] = search_results
+
+            logger.info("Query processed successfully")
+            return result
 
         except Exception as e:
-            logger.error(f"Query processing error: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            logger.error(f"Query processing failed: {e}")
+            raise LLMError("Query processing failed", {"query": request.query, "error": str(e)})
 
     @app.post("/api/import")
     async def import_content(request: ImportRequest):
         """Import content from various sources."""
         try:
+            logger.info(f"Importing content from {request.source_type}: {request.source}")
+            
+            # Check resource limits
+            max_file_size = config.get("content.max_file_size_mb", 50)
+            
             documents = []
-
             if request.source_type == "file":
-                documents = content_manager.ingest_file(request.source)
+                documents = content_manager.ingest_file(
+                    request.source,
+                    chunk_size=request.chunk_size,
+                    chunk_overlap=request.chunk_overlap
+                )
             elif request.source_type == "directory":
-                documents = content_manager.ingest_directory(request.source)
+                documents = content_manager.ingest_directory(
+                    request.source,
+                    chunk_size=request.chunk_size,
+                    chunk_overlap=request.chunk_overlap
+                )
             elif request.source_type == "url":
-                documents = content_manager.ingest_url(request.source)
+                documents = content_manager.ingest_url(
+                    request.source,
+                    chunk_size=request.chunk_size,
+                    chunk_overlap=request.chunk_overlap
+                )
             else:
-                raise HTTPException(status_code=400, detail="Invalid source type")
+                raise ValidationError("Invalid source type", model=ImportRequest)
 
             if not vector_store:
-                raise HTTPException(status_code=503, detail="Vector store not initialized")
+                raise VectorStoreError("Vector store not initialized")
 
             # Add to vector store
             doc_ids = vector_store.add_documents(documents)
-
+            
+            logger.info(f"Import completed: {len(doc_ids)} documents added")
+            
             return {
                 "status": "success",
                 "documents_processed": len(documents),
                 "documents_added": len(doc_ids),
                 "source": request.source,
+                "source_type": request.source_type
             }
 
         except Exception as e:
-            logger.error(f"Import error: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            logger.error(f"Import failed: {e}")
+            raise ContentProcessingError("Content import failed", {
+                "source": request.source,
+                "source_type": request.source_type,
+                "error": str(e)
+            })
 
     @app.post("/api/reset")
     async def reset_database():
         """Reset the vector database."""
-        # TODO: Implement database reset
-        return {"status": "success", "message": "Database reset (placeholder)"}
+        try:
+            logger.warning("Database reset requested")
+            # TODO: Implement database reset
+            return {"status": "success", "message": "Database reset (placeholder)"}
+        except Exception as e:
+            raise VectorStoreError("Database reset failed", {"error": str(e)})
 
     @app.get("/api/status")
     async def system_status():
         """Get detailed system status."""
-        return {
-            "system": "local-rag",
-            "version": "1.0.0",
-            "components": {
-                "llm": {"status": "placeholder"},
-                "vector_store": {"status": "placeholder"},
-                "content_manager": {"status": "ok"},
-            },
-        }
+        try:
+            return {
+                "system": "local-rag",
+                "version": "1.0.0",
+                "config": {
+                    "data_dir": config.get("storage.data_dir"),
+                    "models_dir": config.get("storage.models_dir"),
+                    "server_host": config.get("server.host"),
+                    "server_port": config.get("server.port")
+                },
+                "components": {
+                    "llm": {"status": "placeholder"},
+                    "vector_store": {"status": "placeholder"},
+                    "content_manager": {"status": "ok"},
+                },
+            }
+        except Exception as e:
+            raise LocalRAGException("Status check failed", {"error": str(e)})

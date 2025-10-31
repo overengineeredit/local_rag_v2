@@ -1,0 +1,31 @@
+Source: local-rag
+Section: python
+Priority: optional
+Maintainer: Peenak Inamdar <peenaki@bluequack.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-pip
+Standards-Version: 4.6.0
+Homepage: https://github.com/overengineeredit/local_rag_v2
+Rules-Requires-Root: no
+
+Package: local-rag
+Architecture: any
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3.11,
+         python3-pip,
+         systemd
+Description: Local Retrieval-Augmented Generation System
+ A privacy-focused local RAG system that performs inference entirely on local
+ hardware without internet dependency. Features embedded LLM and vector store
+ with FastAPI web interface and rich CLI commands.
+ .
+ Key features:
+  - 100% local processing with no cloud dependencies
+  - Optimized for Raspberry Pi 5 and AMD64 systems
+  - Dual hash strategy for intelligent content management
+  - APT package installation with systemd service integration
+  - Real-time streaming responses and progress tracking

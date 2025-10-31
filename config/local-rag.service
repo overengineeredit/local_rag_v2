@@ -1,0 +1,32 @@
+[Unit]
+Description=Local RAG System
+Documentation=https://github.com/overengineeredit/local_rag_v2
+After=network.target
+Wants=network.target
+
+[Service]
+Type=exec
+User=local-rag
+Group=local-rag
+ExecStart=/usr/local/bin/local-rag serve
+WorkingDirectory=/var/lib/local-rag
+Environment=LOCAL_RAG_CONFIG=/etc/local-rag/config.yaml
+Environment=PYTHONPATH=/usr/lib/python3.11/site-packages
+Restart=always
+RestartSec=10
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/local-rag /var/log/local-rag
+
+# Resource limits
+MemoryMax=6G
+CPUQuota=400%
+
+[Install]
+WantedBy=multi-user.target

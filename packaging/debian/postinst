@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+
+# Post-installation script for local-rag
+# This script runs after package installation
+
+# Create application directories
+mkdir -p /etc/local-rag
+mkdir -p /var/lib/local-rag/data
+mkdir -p /var/lib/local-rag/models
+mkdir -p /var/log/local-rag
+
+# Create local-rag user if it doesn't exist
+if ! id -u local-rag > /dev/null 2>&1; then
+    useradd --system --home /var/lib/local-rag --shell /bin/false local-rag
+fi
+
+# Set ownership and permissions
+chown -R local-rag:local-rag /var/lib/local-rag
+chown -R local-rag:local-rag /var/log/local-rag
+chmod 755 /var/lib/local-rag
+chmod 755 /var/lib/local-rag/data
+chmod 755 /var/lib/local-rag/models
+chmod 755 /var/log/local-rag
+
+# Set up configuration with appropriate permissions
+chown root:local-rag /etc/local-rag
+chmod 750 /etc/local-rag
+
+# Enable and start the systemd service
+systemctl daemon-reload
+systemctl enable local-rag.service
+
+echo "Local RAG system installed successfully."
+echo "Start the service with: sudo systemctl start local-rag"
+echo "Check status with: sudo systemctl status local-rag"
+echo "View logs with: sudo journalctl -u local-rag -f"
+
+exit 0
