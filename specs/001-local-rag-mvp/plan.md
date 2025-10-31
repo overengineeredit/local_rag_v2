@@ -57,7 +57,7 @@ The system consists of a single Python process managed by systemd, containing al
 - FastAPI app initialization and configuration loading
 - Health check endpoints (`/health`) and system status reporting
 - Configuration validation and environment setup
-- Service lifecycle management and graceful shutdown
+- Systemd service lifecycle management and graceful shutdown
 - Error handling and logging configuration
 
 **`llm_interface.py` - LLM Integration Layer**
@@ -72,7 +72,7 @@ The system consists of a single Python process managed by systemd, containing al
 **`vector_store.py` - Vector Database Operations**
 
 - ChromaDB initialization and connection management
-- Document embedding generation and storage with dual-hash system
+- Document embedding generation and storage with dual hash system
 - Similarity search and retrieval operations
 - Metadata management (title, source_uri, source_hash, content_hash, timestamps)
 - Collection management and database integrity checks
@@ -82,7 +82,7 @@ The system consists of a single Python process managed by systemd, containing al
 
 - Document ingestion from files, URLs, and HTML sources
 - Content preprocessing, normalization, and chunking (512 tokens, 50 overlap)
-- Dual-hash calculation: source_hash (URI + metadata + content), content_hash (content only)
+- Dual hash calculation: source_hash (URI + metadata + content), content_hash (content only)
 - Import/update/delete operations with progress tracking
 - Deduplication logic and import summary reporting
 - Resumable import operations and batch processing
@@ -115,7 +115,7 @@ The system consists of a single Python process managed by systemd, containing al
 - `LLM_MODEL_PATH`: Path to GGUF model file
 - `MAX_RAM_MB`: Maximum RAM usage in MB (default: 6144 for Pi5)
 - `API_HOST`: FastAPI bind address (default: `127.0.0.1`)
-- `API_PORT`: FastAPI port (default: `8080`, configurable to avoid conflicts with MeshtasticD, etc.)
+- `API_PORT`: FastAPI port (default: `8080`, configurable to avoid conflicts with MeshtasticD, development servers, web proxies)
 
 #### Configuration File Structure
 
@@ -142,6 +142,7 @@ api:
 logging:
   level: "INFO"
   file: "/var/log/local-rag/app.log"
+  stdout: true
   max_size: "10MB"
   backup_count: 5
   format: "json"
@@ -159,7 +160,7 @@ resources:
 1. **Input Processing**: Accept files/URLs via CLI or API
 2. **Content Extraction**: Extract text from various formats (txt, md, html)
 3. **Normalization**: Clean whitespace, normalize encoding (UTF-8)
-4. **Metadata Generation**: Extract title, calculate dual hashes, timestamp
+4. **Metadata Generation**: Extract title, calculate dual hash system, timestamp
 5. **Chunking**: Split content into 512-token chunks with 50-token overlap
 6. **Embedding**: Generate vectors using ChromaDB DefaultEmbeddingFunction
 7. **Storage**: Store chunks and metadata in ChromaDB with integrity checks
@@ -216,7 +217,7 @@ resources:
 - Bind to localhost by default for single-user security
 - Configurable CORS origins for web interface
 - No external network access required after setup
-- Optional authentication hooks for future enhancement
+- No authentication required for v1 (single-user device model)
 - Rate limiting for API endpoints
 
 ### Risk Assessment and Mitigation
@@ -241,7 +242,7 @@ resources:
 - **Mitigation**:
   - Use retrieval-augmented generation to ground responses
   - Implement prompt engineering to reduce hallucination
-  - Choose well-reviewed models (DeepSeek R1, Llama variants)
+  - Choose well-reviewed models (default: deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf)
   - Add response quality logging for continuous improvement
   - Provide clear disclaimers about limitations
 
@@ -849,8 +850,8 @@ packaging/
 3. **Model Setup**: Download and configure LLM model
 
    ```bash
-   # Download default model (DeepSeek-R1-distill-qwen 1.5B Q4 quantized)
-   sudo local-rag download-model deepseek-r1-distill-qwen-1.5b
+   # Download default model (deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf)
+   sudo local-rag download-model deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf
    
    # Or manually place GGUF files in /var/lib/local-rag/models/
    ```
@@ -859,7 +860,7 @@ packaging/
 
    ```bash
    sudo nano /etc/local-rag/config.yaml
-   # Change port if 8080 conflicts with other services (MeshtasticD, etc.)
+   # Change port if 8080 conflicts with other services (MeshtasticD, development servers, web proxies)
    # Example: port: 8081
    ```
 
@@ -1038,7 +1039,7 @@ local-rag export-content --format json --output content-backup.json
 
 ```bash
 # Update model files
-local-rag update-model --model deepseek-r1-distill-qwen-1.5b
+local-rag update-model --model deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf
 
 # Rebuild vector database
 local-rag rebuild-vectors --confirm
@@ -1113,7 +1114,7 @@ systemctl disable local-rag
 1. **Insufficient Storage**: Ensure 32GB+ available space
 2. **Model Download Failures**: Check internet connectivity and retry
 3. **Service Start Failures**: Verify configuration file syntax
-4. **Port Conflicts**: Default port 8080 may conflict with MeshtasticD or other services
+4. **Port Conflicts**: Default port 8080 may conflict with MeshtasticD, development servers, or web proxies
    - Edit `/etc/local-rag/config.yaml` and change `api.port` to 8081, 8082, or 9080
    - Restart service: `sudo systemctl restart local-rag`
    - Update CORS origins to match: `cors_origins: ["http://localhost:8081"]`
@@ -1138,5 +1139,4 @@ systemctl disable local-rag
 
 | Violation                  | Why Needed         | Simpler Alternative Rejected Because |
 | -------------------------- | ------------------ | ------------------------------------ |
-| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
+| Multi-architecture CI/CD (ARM64 + AMD64) | Pi5 is ARM64, desktops are AMD64 - different binary architectures require separate compilation | Single-architecture insufficient: Pi5 users cannot run AMD64 binaries, desktop users cannot run ARM64 binaries. Cross-compilation complexity is unavoidable for hardware compatibility. |
