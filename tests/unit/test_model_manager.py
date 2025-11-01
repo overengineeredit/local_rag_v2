@@ -113,9 +113,7 @@ def test_validate_gguf_header_unsupported_version():
     mm = ModelManager()
 
     # Mock GGUF with version 1 (unsupported)
-    gguf_content = (
-        b"GGUF" + b"\x01\x00\x00\x00"  # Magic number  # Version 1 (unsupported)
-    )
+    gguf_content = b"GGUF" + b"\x01\x00\x00\x00"  # Magic number  # Version 1 (unsupported)
 
     with patch("builtins.open", mock_open(read_data=gguf_content)):
         try:
@@ -602,17 +600,14 @@ def test_download_model_progress_logging():
                         "sha256": "mock_hash",
                         "gguf_info": {"version": 3, "tensor_count": 100},
                     }
-                    with patch.object(
-                        mm, "validate_model", return_value=validation_return
-                    ):
+                    with patch.object(mm, "validate_model", return_value=validation_return):
                         mm.download_model("http://example.com/model.bin", "test-model")
 
                     # Should log progress due to time gap
                     download_calls = [
                         call
                         for call in mock_info.call_args_list
-                        if "Downloaded:" in str(call)
-                        or "Download progress" in str(call)
+                        if "Downloaded:" in str(call) or "Download progress" in str(call)
                     ]
                     assert len(download_calls) > 0
 
@@ -664,17 +659,11 @@ def test_download_model_progress_logging_no_content_length():
                         "sha256": "mock_hash",
                         "gguf_info": {"version": 3, "tensor_count": 100},
                     }
-                    with patch.object(
-                        mm, "validate_model", return_value=validation_return
-                    ):
+                    with patch.object(mm, "validate_model", return_value=validation_return):
                         mm.download_model("http://example.com/model.bin", "test-model")
 
                     # Should log downloaded size without percentage
-                    download_calls = [
-                        call
-                        for call in mock_info.call_args_list
-                        if "Downloaded:" in str(call)
-                    ]
+                    download_calls = [call for call in mock_info.call_args_list if "Downloaded:" in str(call)]
                     assert len(download_calls) > 0
 
 

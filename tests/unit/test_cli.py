@@ -90,9 +90,7 @@ class TestLocalRAGCLI:
         cli.status()
 
         # Verify error handling
-        mock_console.print.assert_any_call(
-            "❌ [red]Connection error: Connection failed[/red]"
-        )
+        mock_console.print.assert_any_call("❌ [red]Connection error: Connection failed[/red]")
         mock_exit.assert_called_once_with(1)
 
     @patch("guide.cli.console")
@@ -189,17 +187,13 @@ class TestLocalRAGCLI:
         cli.import_content("/path/to/doc.pdf", "file")
 
         # Verify error handling
-        mock_console.print.assert_any_call(
-            "❌ [red]Connection error: Connection failed[/red]"
-        )
+        mock_console.print.assert_any_call("❌ [red]Connection error: Connection failed[/red]")
         mock_exit.assert_called_once_with(1)
 
     @patch("guide.cli.console")
     @patch("httpx.Client.post")
     @patch("sys.exit")
-    def test_import_content_http_error_with_detail(
-        self, mock_exit, mock_post, mock_console
-    ):
+    def test_import_content_http_error_with_detail(self, mock_exit, mock_post, mock_console):
         """Test import content with HTTP error that has JSON detail."""
         mock_response = Mock()
         mock_response.status_code = 400
@@ -222,9 +216,7 @@ class TestLocalRAGCLI:
     @patch("guide.cli.console")
     @patch("httpx.Client.post")
     @patch("sys.exit")
-    def test_import_content_http_error_no_json(
-        self, mock_exit, mock_post, mock_console
-    ):
+    def test_import_content_http_error_no_json(self, mock_exit, mock_post, mock_console):
         """Test import content with HTTP error that has no JSON."""
         mock_response = Mock()
         mock_response.status_code = 500
@@ -261,9 +253,7 @@ class TestLocalRAGCLI:
         mock_post.assert_called_once_with("/api/reset")
 
         # Verify console output
-        mock_console.print.assert_any_call(
-            "✅ [green]Database reset successfully[/green]"
-        )
+        mock_console.print.assert_any_call("✅ [green]Database reset successfully[/green]")
 
     @patch("guide.cli.console")
     @patch("httpx.Client.post")
@@ -276,9 +266,7 @@ class TestLocalRAGCLI:
         cli.reset_database()
 
         # Verify error handling
-        mock_console.print.assert_any_call(
-            "❌ [red]Connection error: Connection failed[/red]"
-        )
+        mock_console.print.assert_any_call("❌ [red]Connection error: Connection failed[/red]")
         mock_exit.assert_called_once_with(1)
 
     @patch("guide.cli.console")
@@ -300,9 +288,7 @@ class TestLocalRAGCLI:
         cli.query("What is the answer?")
 
         # Verify API call
-        mock_post.assert_called_once_with(
-            "/api/query", json={"query": "What is the answer?"}
-        )
+        mock_post.assert_called_once_with("/api/query", json={"query": "What is the answer?"})
 
         # Verify console output
         mock_console.print.assert_any_call("\n💬 [bold green]Response:[/bold green]")
@@ -324,9 +310,7 @@ class TestLocalRAGCLI:
         cli.query("What is the answer?")
 
         # Verify API call
-        mock_post.assert_called_once_with(
-            "/api/query", json={"query": "What is the answer?"}
-        )
+        mock_post.assert_called_once_with("/api/query", json={"query": "What is the answer?"})
 
         # Verify response is printed but no sources section
         mock_console.print.assert_any_call("This is the answer to your question.")
@@ -501,9 +485,7 @@ class TestMainFunction:
         main()
 
         # Verify interrupt handling
-        mock_console.print.assert_called_with(
-            "\n👋 [yellow]Interrupted by user[/yellow]"
-        )
+        mock_console.print.assert_called_with("\n👋 [yellow]Interrupted by user[/yellow]")
         mock_exit.assert_called_once_with(1)
 
     def test_main_entry_point(self):

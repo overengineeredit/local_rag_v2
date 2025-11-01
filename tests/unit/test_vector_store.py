@@ -396,10 +396,7 @@ class TestVectorStoreChunking:
 
             doc = Document(
                 source="test.txt",
-                content=(
-                    "This is a test document with enough content to be split into multiple chunks. "
-                    * 3
-                ),
+                content=("This is a test document with enough content to be split into multiple chunks. " * 3),
                 metadata={"type": "test"},
             )
 
@@ -409,9 +406,7 @@ class TestVectorStoreChunking:
             assert all(chunk.document_source == "test.txt" for chunk in chunks)
             assert all(chunk.chunk_size <= 100 for chunk in chunks)
             assert chunks[0].chunk_overlap == 0  # First chunk has no overlap
-            assert all(
-                chunk.chunk_overlap == 20 for chunk in chunks[1:]
-            )  # Other chunks have overlap
+            assert all(chunk.chunk_overlap == 20 for chunk in chunks[1:])  # Other chunks have overlap
 
     def test_chunk_document_short_content(self, mock_chroma_client):
         """Test chunking short document that fits in one chunk."""
@@ -425,9 +420,7 @@ class TestVectorStoreChunking:
                 "content.chunk_overlap": 200,
             }.get(key, default)
 
-            doc = Document(
-                source="short.txt", content="Short content", metadata={"type": "test"}
-            )
+            doc = Document(source="short.txt", content="Short content", metadata={"type": "test"})
 
             chunks = vs._chunk_document(doc)
 
@@ -628,9 +621,7 @@ class TestVectorStoreAdvanced:
         doc_content = "Duplicate content"
         documents = [
             Document(source="test1.txt", content=doc_content, metadata={}),
-            Document(
-                source="test2.txt", content=doc_content, metadata={}
-            ),  # Same content
+            Document(source="test2.txt", content=doc_content, metadata={}),  # Same content
         ]
 
         # Mock _is_document_duplicate to return True for the second document
@@ -680,9 +671,7 @@ class TestVectorStoreAdvanced:
             where={"source": "test.txt"},
             include=["metadatas"],
         )
-        mock_chroma_client["collection"].delete.assert_called_once_with(
-            ids=["doc1", "doc2"]
-        )
+        mock_chroma_client["collection"].delete.assert_called_once_with(ids=["doc1", "doc2"])
 
     def test_delete_documents_by_source_no_matches(self, mock_chroma_client):
         """Test delete_documents by source when no documents match."""

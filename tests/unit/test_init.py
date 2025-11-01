@@ -358,9 +358,7 @@ class TestConfig:
 
         issues = config.validate()
 
-        chunk_issue = next(
-            (issue for issue in issues if "chunk" in issue.lower()), None
-        )
+        chunk_issue = next((issue for issue in issues if "chunk" in issue.lower()), None)
         assert chunk_issue is not None
         assert "50000" in chunk_issue
 

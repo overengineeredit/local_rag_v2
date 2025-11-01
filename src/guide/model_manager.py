@@ -150,9 +150,7 @@ class ModelManager:
         except (OSError, struct.error) as e:
             raise ModelValidationError(f"Failed to read GGUF header: {e}")
 
-    def validate_model(
-        self, file_path: Path, expected_hash: str | None = None
-    ) -> dict[str, Any]:
+    def validate_model(self, file_path: Path, expected_hash: str | None = None) -> dict[str, Any]:
         """Validate a GGUF model file.
 
         Args:
@@ -242,9 +240,7 @@ class ModelManager:
 
         try:
             # Download with progress tracking
-            with self.session.get(
-                url, stream=True, timeout=self.download_timeout
-            ) as response:
+            with self.session.get(url, stream=True, timeout=self.download_timeout) as response:
                 response.raise_for_status()
 
                 # Get content length if available
@@ -272,9 +268,7 @@ class ModelManager:
                                                 downloaded_size / (1024 * 1024),
                                                 2,
                                             ),
-                                            "total_mb": round(
-                                                total_size / (1024 * 1024), 2
-                                            ),
+                                            "total_mb": round(total_size / (1024 * 1024), 2),
                                             "model_name": model_name,
                                         },
                                     )
@@ -304,8 +298,7 @@ class ModelManager:
                 f"Model download completed: {model_name}",
                 extra={
                     "file_size_mb": validation_result["file_size_mb"],
-                    "duration": time.time()
-                    - (validation_result["validated_at"] - 10),  # Approximate
+                    "duration": time.time() - (validation_result["validated_at"] - 10),  # Approximate
                 },
             )
 

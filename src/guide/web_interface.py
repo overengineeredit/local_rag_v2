@@ -114,9 +114,7 @@ class ErrorResponse(BaseModel):
 
 
 # Error Handler Functions
-async def handle_local_rag_exception(
-    request: Request, exc: LocalRAGError
-) -> JSONResponse:
+async def handle_local_rag_exception(request: Request, exc: LocalRAGError) -> JSONResponse:
     """Handle custom Local RAG exceptions."""
     logger.error(
         "Local RAG error occurred",
@@ -153,15 +151,11 @@ async def handle_http_exception(request: Request, exc: HTTPException) -> JSONRes
 
     return JSONResponse(
         status_code=exc.status_code,
-        content=ErrorResponse(
-            error="HTTPException", message=str(exc.detail)
-        ).model_dump(),
+        content=ErrorResponse(error="HTTPException", message=str(exc.detail)).model_dump(),
     )
 
 
-async def handle_validation_error(
-    request: Request, exc: ValidationError
-) -> JSONResponse:
+async def handle_validation_error(request: Request, exc: ValidationError) -> JSONResponse:
     """Handle Pydantic validation errors."""
     logger.warning(
         "Validation error occurred",
@@ -290,14 +284,10 @@ def setup_routes(app: FastAPI) -> None:
 
                 response_parts = []
 
-                if (
-                    "system requirements" in query_lower
-                    or "requirements" in query_lower
-                ):
+                if "system requirements" in query_lower or "requirements" in query_lower:
                     if "ram" in context_lower or "memory" in context_lower:
                         response_parts.append(
-                            "The system requires 4GB RAM minimum, with 6GB recommended "
-                            "for optimal performance. ",
+                            "The system requires 4GB RAM minimum, with 6GB recommended " "for optimal performance. ",
                         )
                     if "raspberry pi" in context_lower or "pi" in context_lower:
                         response_parts.append(
@@ -311,8 +301,7 @@ def setup_routes(app: FastAPI) -> None:
                 elif "install" in query_lower:
                     if "apt" in context_lower or "package" in context_lower:
                         response_parts.append(
-                            "Install the system using APT package manager with the "
-                            "provided .deb package. ",
+                            "Install the system using APT package manager with the " "provided .deb package. ",
                         )
                     else:
                         response_parts.append(
@@ -321,8 +310,7 @@ def setup_routes(app: FastAPI) -> None:
 
                 elif "rag" in query_lower or "local rag" in query_lower:
                     response_parts.append(
-                        "The Local RAG system provides privacy-first document processing "
-                        "with local inference. ",
+                        "The Local RAG system provides privacy-first document processing " "with local inference. ",
                     )
                     if "chroma" in context_lower:
                         response_parts.append(
@@ -332,8 +320,7 @@ def setup_routes(app: FastAPI) -> None:
                 elif "port" in query_lower or "configuration" in query_lower:
                     if "8080" in context_lower or "port" in context_lower:
                         response_parts.append(
-                            "The server runs on port 8080 by default and can be "
-                            "configured in the settings. ",
+                            "The server runs on port 8080 by default and can be " "configured in the settings. ",
                         )
                     else:
                         response_parts.append(
@@ -352,8 +339,7 @@ def setup_routes(app: FastAPI) -> None:
                 # Add context information
                 if context:
                     response_parts.append(
-                        f"The retrieved context contains {len(context.split())} words "
-                        "of relevant information.",
+                        f"The retrieved context contains {len(context.split())} words " "of relevant information.",
                     )
 
                 yield from response_parts
@@ -594,7 +580,7 @@ def setup_routes(app: FastAPI) -> None:
 
             # Search for relevant context
             search_results = vector_store.search(request.query, request.max_results)
-            context = "\n\n".join([doc["content"] for doc in search_results])
+            context = "\n\n".join([doc["content"] for doc in search_results if doc["content"] is not None])
 
             # Generate response (placeholder - not streaming yet)
             response_tokens = list(llm.generate(request.query, context))
@@ -609,26 +595,20 @@ def setup_routes(app: FastAPI) -> None:
 
         except Exception as e:
             logger.error(f"Query processing failed: {e}")
-            raise LLMError(
-                "Query processing failed", {"query": request.query, "error": str(e)}
-            )
+            raise LLMError("Query processing failed", {"query": request.query, "error": str(e)})
 
     @app.post("/api/import")
     async def import_content(request: ImportRequest):
         """Import content from various sources."""
         try:
-            logger.info(
-                f"Importing content from {request.source_type}: {request.source}"
-            )
+            logger.info(f"Importing content from {request.source_type}: {request.source}")
 
             # Check resource limits
             config.get("content.max_file_size_mb", 50)
 
             # Create content manager with custom chunk parameters if provided
             chunk_size = request.chunk_size or config.get("content.chunk_size", 1000)
-            chunk_overlap = request.chunk_overlap or config.get(
-                "content.chunk_overlap", 200
-            )
+            chunk_overlap = request.chunk_overlap or config.get("content.chunk_overlap", 200)
 
             cm = ContentManager(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 

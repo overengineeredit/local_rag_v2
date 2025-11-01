@@ -34,15 +34,9 @@ class LocalRAGCLI:
 
             # Overall status
             overall_status = data.get("status", "unknown")
-            status_icon = (
-                "✅"
-                if overall_status == "healthy"
-                else "⚠️" if overall_status == "degraded" else "❌"
-            )
+            status_icon = "✅" if overall_status == "healthy" else "⚠️" if overall_status == "degraded" else "❌"
 
-            console.print(
-                f"{status_icon} [bold green]Local RAG System Status[/bold green]"
-            )
+            console.print(f"{status_icon} [bold green]Local RAG System Status[/bold green]")
             console.print(f"Overall Status: [bold]{overall_status.upper()}[/bold]")
             console.print(
                 f"Service: {data.get('service', 'unknown')} v{data.get('version', 'unknown')}",
@@ -51,9 +45,7 @@ class LocalRAGCLI:
 
             # Display component status
             components = data.get("components", {})
-            table = Table(
-                title="Component Health", show_header=True, header_style="bold magenta"
-            )
+            table = Table(title="Component Health", show_header=True, header_style="bold magenta")
             table.add_column("Component", style="cyan", min_width=12)
             table.add_column("Status", style="green", min_width=8)
             if verbose:
@@ -86,9 +78,7 @@ class LocalRAGCLI:
                             else:
                                 details.append(f"{k}: {v}")
 
-                    details_str = "\n".join(
-                        details[:5]
-                    )  # Limit to 5 details to avoid clutter
+                    details_str = "\n".join(details[:5])  # Limit to 5 details to avoid clutter
                     if len(details) > 5:
                         details_str += f"\n... and {len(details) - 5} more"
 
@@ -132,9 +122,7 @@ class LocalRAGCLI:
             else:
                 source_type = "file"
 
-        console.print(
-            f"📥 [bold blue]Importing content from {source_type}: {source}[/bold blue]"
-        )
+        console.print(f"📥 [bold blue]Importing content from {source_type}: {source}[/bold blue]")
 
         try:
             response = self.client.post(

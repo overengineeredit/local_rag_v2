@@ -35,7 +35,12 @@ def test_cli_initialization():
 
 def test_web_interface_import():
     """Test that web interface module can be imported."""
-    from guide.web_interface import DownloadModelRequest, ImportRequest, QueryRequest, setup_routes
+    from guide.web_interface import (
+        DownloadModelRequest,
+        ImportRequest,
+        QueryRequest,
+        setup_routes,
+    )
 
     assert QueryRequest is not None
     assert ImportRequest is not None
@@ -54,9 +59,7 @@ def test_query_request_model():
     assert request.include_sources is True  # default value
 
     # Test with all fields
-    request2 = QueryRequest(
-        query="another query", max_results=10, include_sources=False
-    )
+    request2 = QueryRequest(query="another query", max_results=10, include_sources=False)
     assert request2.query == "another query"
     assert request2.max_results == 10
     assert request2.include_sources is False

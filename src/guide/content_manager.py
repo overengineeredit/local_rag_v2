@@ -70,9 +70,7 @@ class ContentManager:
             logger.error(f"Error processing {file_path}: {e}")
             raise ValueError(f"Error processing {file_path}: {e}") from e
 
-    def ingest_directory(
-        self, directory_path: str, recursive: bool = True
-    ) -> list[dict[str, Any]]:
+    def ingest_directory(self, directory_path: str, recursive: bool = True) -> list[dict[str, Any]]:
         """Ingest all supported files from a directory.
 
         Args:
@@ -101,9 +99,7 @@ class ContentManager:
                 documents = self.ingest_file(str(file_path))
                 all_documents.extend(documents)
 
-        logger.info(
-            f"Processed directory {path.name}: {len(all_documents)} total documents"
-        )
+        logger.info(f"Processed directory {path.name}: {len(all_documents)} total documents")
         return all_documents
 
     def ingest_url(self, url: str) -> list[dict[str, Any]]:

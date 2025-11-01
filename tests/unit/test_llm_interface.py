@@ -201,9 +201,7 @@ class TestLLMInterface:
         """Test initialization with custom parameters."""
         from guide.llm_interface import LLMInterface
 
-        llm = LLMInterface(
-            "/path/to/model.gguf", n_ctx=4096, n_gpu_layers=10, temperature=0.5
-        )
+        llm = LLMInterface("/path/to/model.gguf", n_ctx=4096, n_gpu_layers=10, temperature=0.5)
 
         assert llm.default_params["n_ctx"] == 4096
         assert llm.default_params["n_gpu_layers"] == 10
@@ -213,12 +211,8 @@ class TestLLMInterface:
         """Test initialization when llama-cpp-python is missing."""
         from guide.llm_interface import LLMInterface
 
-        with patch(
-            "llama_cpp.Llama", side_effect=ImportError("No module named 'llama_cpp'")
-        ):
-            with pytest.raises(
-                RuntimeError, match="llama-cpp-python dependency missing"
-            ):
+        with patch("llama_cpp.Llama", side_effect=ImportError("No module named 'llama_cpp'")):
+            with pytest.raises(RuntimeError, match="llama-cpp-python dependency missing"):
                 LLMInterface("/path/to/model.gguf")
 
     def test_init_model_loading_failure(self):
@@ -442,9 +436,7 @@ class TestLLMUtilities:
             mock_estimate.side_effect = estimate_side_effect
 
             long_context = "Long context that should be truncated. " * 100
-            result_context, was_truncated = llm.validate_context_length(
-                "Query", long_context
-            )
+            result_context, was_truncated = llm.validate_context_length("Query", long_context)
 
             assert len(result_context) < len(long_context)
             assert was_truncated is True
@@ -484,9 +476,7 @@ class TestLLMUtilities:
 
         llm = LLMInterface("/path/to/model.gguf")
 
-        with patch.object(
-            llm, "generate_complete", side_effect=Exception("Health check error")
-        ):
+        with patch.object(llm, "generate_complete", side_effect=Exception("Health check error")):
             result = llm.health_check()
 
             assert result["status"] == "error"
@@ -542,9 +532,7 @@ class TestLLMInterfaceGenerationErrorHandling:
             llm = LLMInterface("/path/to/model.gguf")
 
             # Mock generate to raise an exception
-            with patch.object(
-                llm, "generate", side_effect=Exception("Generation error")
-            ):
+            with patch.object(llm, "generate", side_effect=Exception("Generation error")):
                 with pytest.raises(Exception, match="Generation error"):
                     llm.generate_complete("test prompt")
 
@@ -625,13 +613,8 @@ class TestLLMInterfaceQueryProcessing:
 
                 # Verify context was included in the call
                 call_args = mock_generate.call_args
-                assert (
-                    "Machine learning is a subset of AI." in call_args.kwargs["context"]
-                )
-                assert (
-                    "It uses algorithms to learn patterns."
-                    in call_args.kwargs["context"]
-                )
+                assert "Machine learning is a subset of AI." in call_args.kwargs["context"]
+                assert "It uses algorithms to learn patterns." in call_args.kwargs["context"]
 
     def test_process_query_exception_handling(self):
         """Test query processing exception handling."""
@@ -644,9 +627,7 @@ class TestLLMInterfaceQueryProcessing:
             query = Query(query_id="test-query", text="Test query")
 
             # Mock generate_complete to raise an exception
-            with patch.object(
-                llm, "generate_complete", side_effect=Exception("Generation failed")
-            ):
+            with patch.object(llm, "generate_complete", side_effect=Exception("Generation failed")):
                 with pytest.raises(Exception, match="Generation failed"):
                     llm.process_query(query)
 

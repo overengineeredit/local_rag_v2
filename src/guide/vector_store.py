@@ -124,9 +124,7 @@ class DocumentChunk:
         )
 
     @classmethod
-    def create_chunk_id(
-        cls, document_source: str, chunk_index: int, content_hash: str
-    ) -> str:
+    def create_chunk_id(cls, document_source: str, chunk_index: int, content_hash: str) -> str:
         """Create a unique chunk ID."""
         # Combine document source, chunk index, and first 8 chars of content hash
         source_hash = hashlib.sha256(document_source.encode()).hexdigest()[:8]
@@ -166,9 +164,7 @@ class VectorStore:
             )
 
             # Initialize persistent client
-            self.client = chromadb.PersistentClient(
-                path=self.persist_directory, settings=settings
-            )
+            self.client = chromadb.PersistentClient(path=self.persist_directory, settings=settings)
 
             # Get or create collection with default embedding function
             self.collection = self.client.get_or_create_collection(
@@ -176,9 +172,7 @@ class VectorStore:
                 metadata={"hnsw:space": "cosine"},  # Use cosine similarity
             )
 
-            logger.info(
-                f"ChromaDB initialized successfully: collection '{self.collection_name}'"
-            )
+            logger.info(f"ChromaDB initialized successfully: collection '{self.collection_name}'")
 
         except Exception as e:
             logger.error(f"Failed to initialize ChromaDB: {e}")
@@ -287,16 +281,8 @@ class VectorStore:
                     formatted_results.append(
                         {
                             "content": doc,
-                            "metadata": (
-                                results["metadatas"][0][i]
-                                if results["metadatas"]
-                                else {}
-                            ),
-                            "distance": (
-                                results["distances"][0][i]
-                                if results["distances"]
-                                else 0.0
-                            ),
+                            "metadata": (results["metadatas"][0][i] if results["metadatas"] else {}),
+                            "distance": (results["distances"][0][i] if results["distances"] else 0.0),
                         },
                     )
 
@@ -307,9 +293,7 @@ class VectorStore:
             logger.error(f"Search failed: {e}")
             raise RuntimeError(f"Search operation failed: {e}") from e
 
-    def delete_documents(
-        self, source: str | None = None, doc_ids: list[str] | None = None
-    ) -> int:
+    def delete_documents(self, source: str | None = None, doc_ids: list[str] | None = None) -> int:
         """Delete documents by source or IDs.
 
         Args:
@@ -334,9 +318,7 @@ class VectorStore:
 
             elif source:
                 # Find and delete all documents from source
-                results = self.collection.get(
-                    where={"source": source}, include=["metadatas"]
-                )
+                results = self.collection.get(where={"source": source}, include=["metadatas"])
                 if results["ids"]:
                     self.collection.delete(ids=results["ids"])
                     deleted_count = len(results["ids"])
@@ -390,9 +372,7 @@ class VectorStore:
             return False
 
         try:
-            results = self.collection.get(
-                where={"document_hash": content_hash}, limit=1
-            )
+            results = self.collection.get(where={"document_hash": content_hash}, limit=1)
             return len(results["ids"]) > 0
         except Exception as e:
             logger.warning(f"Document duplicate check failed: {e}")
@@ -442,9 +422,7 @@ class VectorStore:
             if chunk_content:  # Only create non-empty chunks
                 # Create chunk ID
                 chunk_hash = hashlib.sha256(chunk_content.encode()).hexdigest()
-                chunk_id = DocumentChunk.create_chunk_id(
-                    document.source, chunk_index, chunk_hash
-                )
+                chunk_id = DocumentChunk.create_chunk_id(document.source, chunk_index, chunk_hash)
 
                 # Create chunk object
                 chunk = DocumentChunk(

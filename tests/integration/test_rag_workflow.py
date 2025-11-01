@@ -201,9 +201,7 @@ class TestCompleteRAGWorkflow:
             }
 
             response = client.post("/api/query", json=query_request)
-            assert (
-                response.status_code == 200
-            ), f"Query failed: {test_query['description']}"
+            assert response.status_code == 200, f"Query failed: {test_query['description']}"
 
             response_data = response.json()
             assert "response" in response_data
@@ -215,14 +213,8 @@ class TestCompleteRAGWorkflow:
 
             # Check that response is relevant (basic keyword checking)
             # Note: In real tests, this would be more sophisticated
-            relevant_keywords = sum(
-                1
-                for topic in test_query["expected_topics"]
-                if topic.lower() in response_text
-            )
-            assert (
-                relevant_keywords > 0
-            ), f"Response not relevant to query: {test_query['query']}"
+            relevant_keywords = sum(1 for topic in test_query["expected_topics"] if topic.lower() in response_text)
+            assert relevant_keywords > 0, f"Response not relevant to query: {test_query['query']}"
 
             # Validate sources
             sources = response_data["sources"]

@@ -154,9 +154,7 @@ class TestRequestResponseModels:
 
     def test_download_model_request_basic(self):
         """Test basic DownloadModelRequest creation."""
-        req = DownloadModelRequest(
-            url="https://example.com/model.bin", model_name="test-model"
-        )
+        req = DownloadModelRequest(url="https://example.com/model.bin", model_name="test-model")
         assert req.url == "https://example.com/model.bin"
         assert req.model_name == "test-model"
         assert req.expected_hash is None  # default value
@@ -194,9 +192,7 @@ class TestRequestResponseModels:
 
     def test_error_response_with_request_id(self):
         """Test ErrorResponse with request ID."""
-        resp = ErrorResponse(
-            error="server_error", message="Internal error", request_id="req-123"
-        )
+        resp = ErrorResponse(error="server_error", message="Internal error", request_id="req-123")
         assert resp.error == "server_error"
         assert resp.message == "Internal error"
         assert resp.request_id == "req-123"
@@ -290,9 +286,7 @@ class TestErrorHandlers:
         ]
 
         with patch("guide.web_interface.logger") as mock_logger:
-            response = await handle_validation_error(
-                mock_request, mock_validation_error
-            )
+            response = await handle_validation_error(mock_request, mock_validation_error)
 
         # Check response
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -351,10 +345,7 @@ class TestSetupFunctions:
 
         # Check for specific exception types
         handler_keys = list(app.exception_handlers.keys())
-        handler_names = [
-            key.__name__ if hasattr(key, "__name__") else str(key)
-            for key in handler_keys
-        ]
+        handler_names = [key.__name__ if hasattr(key, "__name__") else str(key) for key in handler_keys]
 
         # Should include our custom exceptions
         assert any("LocalRAGError" in name for name in handler_names)
@@ -396,9 +387,7 @@ class TestSetupFunctions:
 
     @patch("guide.web_interface.ModelManager")
     @patch("guide.web_interface.ContentManager")
-    def test_setup_routes_with_dependencies(
-        self, mock_content_manager, mock_model_manager
-    ):
+    def test_setup_routes_with_dependencies(self, mock_content_manager, mock_model_manager):
         """Test route setup with proper dependency initialization."""
         from fastapi import FastAPI
 
@@ -510,9 +499,7 @@ class TestAPIEndpoints:
 
         assert response.status_code == 200
         data = response.json()
-        assert (
-            data["status"] == "unhealthy"
-        )  # Should be unhealthy due to component errors
+        assert data["status"] == "unhealthy"  # Should be unhealthy due to component errors
 
     def test_api_status_endpoint(self, client):
         """Test the API status endpoint."""
@@ -1044,9 +1031,7 @@ class TestEdgeCasesAndErrorHandling:
     def test_invalid_field_types(self, client):
         """Test handling of invalid field types."""
         # Invalid type for max_results (should be int)
-        response = client.post(
-            "/api/query", json={"query": "test", "max_results": "invalid"}
-        )
+        response = client.post("/api/query", json={"query": "test", "max_results": "invalid"})
 
         assert response.status_code == 422
 
