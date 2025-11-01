@@ -169,6 +169,8 @@ class ContentManager:
             if end >= len(words):
                 break
 
-            start = end - self.chunk_overlap
+            # Ensure we always move forward, even with large overlap
+            next_start = end - self.chunk_overlap
+            start = max(next_start, start + 1)  # Always advance at least 1 position
 
         return chunks if chunks else [content]

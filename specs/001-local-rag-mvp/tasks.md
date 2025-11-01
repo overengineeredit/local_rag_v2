@@ -137,11 +137,11 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project structure per implementation plan in src/guide/
-- [ ] T002 Initialize Python project with FastAPI, llama-cpp-python, ChromaDB dependencies in pyproject.toml
-- [ ] T003 [P] Configure ruff linting and formatting tools in pyproject.toml
-- [ ] T004 [P] Create systemd service configuration in config/local-rag.service
-- [ ] T005 [P] Setup APT packaging structure in packaging/debian/
+- [X] T001 Create project structure per implementation plan in src/guide/
+- [X] T002 Initialize Python project with FastAPI, llama-cpp-python, ChromaDB dependencies in pyproject.toml
+- [X] T003 [P] Configure ruff linting and formatting tools in pyproject.toml
+- [X] T004 [P] Create systemd service configuration in config/local-rag.service
+- [X] T005 [P] Setup APT packaging structure in packaging/debian/
 
 ---
 
@@ -151,18 +151,18 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Setup ChromaDB embedded configuration and initialization in src/guide/vector_store.py
-- [ ] T007 [P] Implement configuration management with YAML loading in src/guide/__init__.py
-- [ ] T008 [P] Implement comprehensive JSON-formatted logging system per FR-021: JSON format with required fields (timestamp, level, module, message, request_id) and optional fields (user_id, duration_ms, error_code, context); configurable levels (DEBUG/INFO/WARN/ERROR); disk output to /var/log/local-rag/app.log + stdout; 10MB max size with 5 backup files rotation; integration with FastAPI request logging and basic infrastructure setup in src/guide/main.py
-- [ ] T009 [P] Create base FastAPI application structure in src/guide/main.py
-- [ ] T009a [P] Implement thermal monitoring infrastructure per NFR-006: discover available thermal zones by scanning `/sys/class/thermal/thermal_zone*/temp`, select primary zone (thermal_zone0) with fallback to highest numbered zone if zone0 unavailable, read temperature every 30 seconds using 3-sample rolling average (collections.deque(maxlen=3) with arithmetic mean), trigger alerts at >75°C average, halt processing at >85°C average with user notification and automatic resume when average drops below 70°C, handle thermal zone read failures with graceful degradation to higher polling intervals in src/guide/main.py
-- [ ] T009b [P] Implement model management infrastructure per FR-015: model download validation, GGUF file integrity checks, model storage in /var/lib/local-rag/models/, default model setup in src/guide/llm_interface.py
+- [X] T006 Setup ChromaDB embedded configuration and initialization in src/guide/vector_store.py
+- [X] T007 [P] Implement configuration management with YAML loading in src/guide/__init__.py
+- [X] T008 [P] Implement comprehensive JSON-formatted logging system per FR-021: JSON format with required fields (timestamp, level, module, message, request_id) and optional fields (user_id, duration_ms, error_code, context); configurable levels (DEBUG/INFO/WARN/ERROR); disk output to /var/log/local-rag/app.log + stdout; 10MB max size with 5 backup files rotation; integration with FastAPI request logging and basic infrastructure setup in src/guide/main.py
+- [X] T009 [P] Create base FastAPI application structure in src/guide/main.py
+- [x] T009a [P] Implement thermal monitoring infrastructure per NFR-006: discover available thermal zones by scanning `/sys/class/thermal/thermal_zone*/temp`, select primary zone (thermal_zone0) with fallback to highest numbered zone if zone0 unavailable, read temperature every 30 seconds using 3-sample rolling average (collections.deque(maxlen=3) with arithmetic mean), trigger alerts at >75°C average, halt processing at >85°C average with user notification and automatic resume when average drops below 70°...
+- [x] T009b [P] Implement model management infrastructure per FR-015: model download validation, GGUF file integrity checks, model storage in /var/lib/local-rag/models/, default model setup in src/guide/llm_interface.py
 - [ ] T009c [P] Implement model storage directory creation and management per FR-015: create /var/lib/local-rag/models/ with proper permissions, validate directory writability, implement model file organization and cleanup in src/guide/llm_interface.py
 - [ ] T009d [P] Implement model download and validation system per FR-015: download default model if missing, verify GGUF file integrity, handle download failures with retry logic, provide download progress reporting in src/guide/llm_interface.py
-- [ ] T010 Create error handling middleware and exception classes in src/guide/web_interface.py
-- [ ] T011 [P] Setup health check infrastructure for all components in src/guide/web_interface.py
-- [ ] T011a [P] Implement health check API endpoint per FR-016: JSON response with component status (LLM model loaded, ChromaDB connectivity, disk space %, memory usage %, overall system health) accessible at GET /health in src/guide/web_interface.py
-- [ ] T011b [P] Implement health check CLI command per FR-016: `local-rag status` with human-readable output, `--verbose` flag for detailed diagnostics, communicate with API endpoint for data in src/guide/cli.py
+- [X] T010 Create error handling middleware and exception classes in src/guide/web_interface.py
+- [X] T011 [P] Setup health check infrastructure for all components in src/guide/web_interface.py
+- [X] T011a [P] Implement health check API endpoint per FR-016: JSON response with component status (LLM model loaded, ChromaDB connectivity, disk space %, memory usage %, overall system health) accessible at GET /health in src/guide/web_interface.py
+- [x] T011b [P] Implement health check CLI command per FR-016: `local-rag status` with human-readable output, `--verbose` flag for detailed diagnostics, communicate with API endpoint for data in src/guide/cli.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

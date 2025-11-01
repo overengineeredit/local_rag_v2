@@ -1,0 +1,33 @@
+server:
+  host: "127.0.0.1"
+  port: 8080
+  workers: 1
+  reload: false
+
+storage:
+  data_dir: "./data"
+  models_dir: "./models"
+  vector_db_dir: "./data/chromadb"
+
+llm:
+  model_path: "./models/deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf"
+  context_length: 2048
+  temperature: 0.7
+  max_tokens: 512
+  n_threads: 4
+
+embedding:
+  model: "all-MiniLM-L6-v2"
+  batch_size: 32
+
+content:
+  chunk_size: 512
+  chunk_overlap: 50
+  max_file_size_mb: 100
+
+logging:
+  level: "INFO"
+  format: "json"
+  file: "./data/logs/app.log"
+  max_size: "10MB"
+  backup_count: 5

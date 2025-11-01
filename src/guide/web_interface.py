@@ -15,6 +15,7 @@ from pydantic import BaseModel, ValidationError
 
 from . import config
 from .content_manager import ContentManager
+from .model_manager import ModelManager
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,16 @@ class ImportRequest(BaseModel):
     chunk_overlap: int | None = None
 
 
+class DownloadModelRequest(BaseModel):
+    """Request model for model downloads."""
+    
+    model_config = {"protected_namespaces": ()}
+    
+    url: str
+    model_name: str | None = None
+    expected_hash: str | None = None
+
+
 class ErrorResponse(BaseModel):
     """Standard error response model."""
     
@@ -83,12 +94,12 @@ class ErrorResponse(BaseModel):
 
 # Error Handler Functions
 async def handle_local_rag_exception(request: Request, exc: LocalRAGException) -> JSONResponse:
-    """Handle Local RAG specific exceptions."""
+    """Handle custom Local RAG exceptions."""
     logger.error(
         "Local RAG error occurred",
         extra={
             "error_type": type(exc).__name__,
-            "message": exc.message,
+            "error_message": exc.message,
             "details": exc.details,
             "path": str(request.url),
             "method": request.method
@@ -148,26 +159,23 @@ async def handle_validation_error(request: Request, exc: ValidationError) -> JSO
 
 
 async def handle_general_exception(request: Request, exc: Exception) -> JSONResponse:
-    """Handle all other exceptions."""
+    """Handle unexpected exceptions."""
     logger.error(
         "Unexpected error occurred",
         extra={
             "error_type": type(exc).__name__,
-            "message": str(exc),
+            "error_message": str(exc),
             "path": str(request.url),
-            "method": request.method,
-            "traceback": traceback.format_exc()
-        }
+            "method": request.method
+        },
+        exc_info=True
     )
-    
-    # Don't expose internal error details in production
-    message = str(exc) if config.get("server.debug", False) else "Internal server error"
     
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=ErrorResponse(
             error="InternalServerError",
-            message=message
+            message="An unexpected error occurred"
         ).dict()
     )
 
@@ -200,7 +208,9 @@ def setup_routes(app: FastAPI) -> None:
     # Initialize core components (TODO: move to dependency injection)
     llm = None  # Will be initialized with actual config
     vector_store = None
+    # Initialize content manager with default values, will be overridden per request
     content_manager = ContentManager()
+    model_manager = ModelManager()
 
     @app.get("/", response_class=HTMLResponse)
     async def index():
@@ -333,6 +343,42 @@ def setup_routes(app: FastAPI) -> None:
             # Check content manager
             components["content_manager"] = {"status": "ok"}
             
+            # Check thermal monitoring
+            try:
+                from .main import thermal_monitor
+                thermal_status = thermal_monitor.get_thermal_status()
+                
+                # Determine thermal status level
+                if thermal_status["is_halted"]:
+                    thermal_health = "error"
+                elif thermal_status["is_throttled"]:
+                    thermal_health = "warning"
+                elif not thermal_status["thermal_zone_available"]:
+                    thermal_health = "warning"
+                else:
+                    thermal_health = "ok"
+                
+                components["thermal"] = {
+                    "status": thermal_health,
+                    **thermal_status
+                }
+            except Exception as e:
+                components["thermal"] = {"status": "error", "error": str(e)}
+            
+            # Check model management
+            try:
+                storage_info = model_manager.get_storage_info()
+                models = model_manager.list_models()
+                
+                components["models"] = {
+                    "status": "ok",
+                    "total_models": storage_info["total_models"],
+                    "storage_mb": storage_info["total_size_mb"],
+                    "models_directory": storage_info["models_directory"]
+                }
+            except Exception as e:
+                components["models"] = {"status": "error", "error": str(e)}
+            
             # Check configuration
             config_issues = config.validate()
             components["configuration"] = {
@@ -400,31 +446,28 @@ def setup_routes(app: FastAPI) -> None:
             # Check resource limits
             max_file_size = config.get("content.max_file_size_mb", 50)
             
+            # Create content manager with custom chunk parameters if provided
+            chunk_size = request.chunk_size or config.get("content.chunk_size", 1000)
+            chunk_overlap = request.chunk_overlap or config.get("content.chunk_overlap", 200)
+            
+            cm = ContentManager(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+            
             documents = []
             if request.source_type == "file":
-                documents = content_manager.ingest_file(
-                    request.source,
-                    chunk_size=request.chunk_size,
-                    chunk_overlap=request.chunk_overlap
-                )
+                documents = cm.ingest_file(request.source)
             elif request.source_type == "directory":
-                documents = content_manager.ingest_directory(
-                    request.source,
-                    chunk_size=request.chunk_size,
-                    chunk_overlap=request.chunk_overlap
-                )
+                documents = cm.ingest_directory(request.source)
             elif request.source_type == "url":
-                documents = content_manager.ingest_url(
-                    request.source,
-                    chunk_size=request.chunk_size,
-                    chunk_overlap=request.chunk_overlap
-                )
+                documents = cm.ingest_url(request.source)
             else:
-                raise ValidationError("Invalid source type", model=ImportRequest)
-
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Invalid source type. Must be 'file', 'directory', or 'url'"
+                )
+            
             if not vector_store:
                 raise VectorStoreError("Vector store not initialized")
-
+            
             # Add to vector store
             doc_ids = vector_store.add_documents(documents)
             
@@ -477,3 +520,86 @@ def setup_routes(app: FastAPI) -> None:
             }
         except Exception as e:
             raise LocalRAGException("Status check failed", {"error": str(e)})
+
+    # Model Management Endpoints
+    @app.get("/api/models")
+    async def list_models():
+        """List all available models."""
+        try:
+            models = model_manager.list_models()
+            storage_info = model_manager.get_storage_info()
+            
+            return {
+                "models": models,
+                "storage": storage_info
+            }
+        except Exception as e:
+            logger.error("Failed to list models", exc_info=True)
+            raise LocalRAGException("Failed to list models", {"error": str(e)})
+
+    @app.post("/api/models/download")
+    async def download_model(request: DownloadModelRequest):
+        """Download a model from URL."""
+        try:
+            model_path = model_manager.download_model(
+                url=request.url,
+                model_name=request.model_name,
+                expected_hash=request.expected_hash
+            )
+            
+            return {
+                "status": "success",
+                "model_name": model_path.name,
+                "file_path": str(model_path),
+                "message": f"Model downloaded successfully: {model_path.name}"
+            }
+        except Exception as e:
+            logger.error(f"Model download failed: {e}", exc_info=True)
+            raise LocalRAGException("Model download failed", {"error": str(e)})
+
+    @app.delete("/api/models/{model_name}")
+    async def delete_model(model_name: str):
+        """Delete a model from storage."""
+        try:
+            success = model_manager.delete_model(model_name)
+            
+            if success:
+                return {
+                    "status": "success",
+                    "message": f"Model deleted: {model_name}"
+                }
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Model not found: {model_name}"
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Model deletion failed: {e}", exc_info=True)
+            raise LocalRAGException("Model deletion failed", {"error": str(e)})
+
+    @app.post("/api/models/{model_name}/validate")
+    async def validate_model(model_name: str):
+        """Validate a model file."""
+        try:
+            model_path = model_manager.get_model_path(model_name)
+            
+            if not model_path:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Model not found: {model_name}"
+                )
+            
+            validation_result = model_manager.validate_model(model_path)
+            
+            return {
+                "status": "success",
+                "model_name": model_name,
+                "validation": validation_result
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Model validation failed: {e}", exc_info=True)
+            raise LocalRAGException("Model validation failed", {"error": str(e)})
