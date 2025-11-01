@@ -90,7 +90,9 @@ def test_read_temperature_success():
 
     # Mock thermal zone path and file content
     with patch("builtins.open", mock_open(read_data="45123\n")):
-        with patch.object(tm, "thermal_zone_path", Path("/sys/class/thermal/thermal_zone0/temp")):
+        with patch.object(
+            tm, "thermal_zone_path", Path("/sys/class/thermal/thermal_zone0/temp")
+        ):
             temp = tm._read_temperature()
 
             assert temp == 45.123  # 45123 millidegrees = 45.123 degrees
@@ -170,7 +172,9 @@ def test_thermal_status():
     tm.temperature_history.extend([50.0, 52.0, 48.0])
 
     with patch.object(tm, "_read_temperature", return_value=51.0):
-        with patch.object(tm, "thermal_zone_path", Path("/sys/class/thermal/thermal_zone0/temp")):
+        with patch.object(
+            tm, "thermal_zone_path", Path("/sys/class/thermal/thermal_zone0/temp")
+        ):
             with patch.object(tm, "is_monitoring", True):
                 status = tm.get_thermal_status()
 
@@ -189,7 +193,9 @@ def test_start_monitoring(mock_thread):
 
     tm = ThermalMonitor()
 
-    with patch.object(tm, "thermal_zone_path", Path("/sys/class/thermal/thermal_zone0/temp")):
+    with patch.object(
+        tm, "thermal_zone_path", Path("/sys/class/thermal/thermal_zone0/temp")
+    ):
         tm.start_monitoring()
 
         assert tm.is_monitoring is True

@@ -114,7 +114,9 @@ class ErrorResponse(BaseModel):
 
 
 # Error Handler Functions
-async def handle_local_rag_exception(request: Request, exc: LocalRAGError) -> JSONResponse:
+async def handle_local_rag_exception(
+    request: Request, exc: LocalRAGError
+) -> JSONResponse:
     """Handle custom Local RAG exceptions."""
     logger.error(
         "Local RAG error occurred",
@@ -130,7 +132,9 @@ async def handle_local_rag_exception(request: Request, exc: LocalRAGError) -> JS
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=ErrorResponse(
-            error=type(exc).__name__, message=exc.message, details=exc.details,
+            error=type(exc).__name__,
+            message=exc.message,
+            details=exc.details,
         ).model_dump(),
     )
 
@@ -149,15 +153,23 @@ async def handle_http_exception(request: Request, exc: HTTPException) -> JSONRes
 
     return JSONResponse(
         status_code=exc.status_code,
-        content=ErrorResponse(error="HTTPException", message=str(exc.detail)).model_dump(),
+        content=ErrorResponse(
+            error="HTTPException", message=str(exc.detail)
+        ).model_dump(),
     )
 
 
-async def handle_validation_error(request: Request, exc: ValidationError) -> JSONResponse:
+async def handle_validation_error(
+    request: Request, exc: ValidationError
+) -> JSONResponse:
     """Handle Pydantic validation errors."""
     logger.warning(
         "Validation error occurred",
-        extra={"errors": exc.errors(), "path": str(request.url), "method": request.method},
+        extra={
+            "errors": exc.errors(),
+            "path": str(request.url),
+            "method": request.method,
+        },
     )
 
     return JSONResponse(
@@ -171,7 +183,8 @@ async def handle_validation_error(request: Request, exc: ValidationError) -> JSO
 
 
 async def handle_request_validation_error(
-    request: Request, exc: RequestValidationError,
+    request: Request,
+    exc: RequestValidationError,
 ) -> JSONResponse:
     """Handle FastAPI request validation errors."""
     # Clean up the errors to ensure JSON serialization
@@ -186,7 +199,11 @@ async def handle_request_validation_error(
 
     logger.warning(
         "Request validation error occurred",
-        extra={"errors": clean_errors, "path": str(request.url), "method": request.method},
+        extra={
+            "errors": clean_errors,
+            "path": str(request.url),
+            "method": request.method,
+        },
     )
 
     return JSONResponse(
@@ -215,7 +232,8 @@ async def handle_general_exception(request: Request, exc: Exception) -> JSONResp
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=ErrorResponse(
-            error="InternalServerError", message="An unexpected error occurred",
+            error="InternalServerError",
+            message="An unexpected error occurred",
         ).model_dump(),
     )
 
@@ -254,12 +272,14 @@ def setup_routes(app: FastAPI) -> None:
     llm = None
     try:
         model_path = config.get(
-            "llm.model_path", "./models/deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf",
+            "llm.model_path",
+            "./models/deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf",
         )
         llm = LLMInterface(model_path)
         logger.info(f"LLM initialized successfully with model: {model_path}")
     except Exception as e:
         logger.warning(f"LLM initialization failed: {e}. Using mock LLM for testing.")
+
         # Create a mock LLM for testing purposes
         class MockLLM:
             def generate(self, prompt, context="", **kwargs):
@@ -270,7 +290,10 @@ def setup_routes(app: FastAPI) -> None:
 
                 response_parts = []
 
-                if "system requirements" in query_lower or "requirements" in query_lower:
+                if (
+                    "system requirements" in query_lower
+                    or "requirements" in query_lower
+                ):
                     if "ram" in context_lower or "memory" in context_lower:
                         response_parts.append(
                             "The system requires 4GB RAM minimum, with 6GB recommended "
@@ -560,7 +583,10 @@ def setup_routes(app: FastAPI) -> None:
         if not llm or not vector_store:
             raise ConfigurationError(
                 "System not fully initialized",
-                {"llm_ready": llm is not None, "vector_store_ready": vector_store is not None},
+                {
+                    "llm_ready": llm is not None,
+                    "vector_store_ready": vector_store is not None,
+                },
             )
 
         try:
@@ -583,20 +609,26 @@ def setup_routes(app: FastAPI) -> None:
 
         except Exception as e:
             logger.error(f"Query processing failed: {e}")
-            raise LLMError("Query processing failed", {"query": request.query, "error": str(e)})
+            raise LLMError(
+                "Query processing failed", {"query": request.query, "error": str(e)}
+            )
 
     @app.post("/api/import")
     async def import_content(request: ImportRequest):
         """Import content from various sources."""
         try:
-            logger.info(f"Importing content from {request.source_type}: {request.source}")
+            logger.info(
+                f"Importing content from {request.source_type}: {request.source}"
+            )
 
             # Check resource limits
             config.get("content.max_file_size_mb", 50)
 
             # Create content manager with custom chunk parameters if provided
             chunk_size = request.chunk_size or config.get("content.chunk_size", 1000)
-            chunk_overlap = request.chunk_overlap or config.get("content.chunk_overlap", 200)
+            chunk_overlap = request.chunk_overlap or config.get(
+                "content.chunk_overlap", 200
+            )
 
             cm = ContentManager(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
@@ -636,7 +668,11 @@ def setup_routes(app: FastAPI) -> None:
             logger.error(f"Import failed: {e}")
             raise ContentProcessingError(
                 "Content import failed",
-                {"source": request.source, "source_type": request.source_type, "error": str(e)},
+                {
+                    "source": request.source,
+                    "source_type": request.source_type,
+                    "error": str(e),
+                },
             )
 
     @app.post("/api/reset")
@@ -689,7 +725,9 @@ def setup_routes(app: FastAPI) -> None:
         """Download a model from URL."""
         try:
             model_path = model_manager.download_model(
-                url=request.url, model_name=request.model_name, expected_hash=request.expected_hash,
+                url=request.url,
+                model_name=request.model_name,
+                expected_hash=request.expected_hash,
             )
 
             return {
@@ -712,7 +750,8 @@ def setup_routes(app: FastAPI) -> None:
                 return {"status": "success", "message": f"Model deleted: {model_name}"}
             else:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail=f"Model not found: {model_name}",
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Model not found: {model_name}",
                 )
         except HTTPException:
             raise
@@ -728,12 +767,17 @@ def setup_routes(app: FastAPI) -> None:
 
             if not model_path:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail=f"Model not found: {model_name}",
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Model not found: {model_name}",
                 )
 
             validation_result = model_manager.validate_model(model_path)
 
-            return {"status": "success", "model_name": model_name, "validation": validation_result}
+            return {
+                "status": "success",
+                "model_name": model_name,
+                "validation": validation_result,
+            }
         except HTTPException:
             raise
         except Exception as e:

@@ -60,7 +60,11 @@ class TestLocalRAGCLI:
             "service": "local-rag",
             "version": "1.0.0",
             "components": {
-                "database": {"status": "ok", "connections": 5, "nested_info": {"key": "value"}},
+                "database": {
+                    "status": "ok",
+                    "connections": 5,
+                    "nested_info": {"key": "value"},
+                },
                 "llm": {"status": "not_initialized"},
             },
         }
@@ -86,7 +90,9 @@ class TestLocalRAGCLI:
         cli.status()
 
         # Verify error handling
-        mock_console.print.assert_any_call("❌ [red]Connection error: Connection failed[/red]")
+        mock_console.print.assert_any_call(
+            "❌ [red]Connection error: Connection failed[/red]"
+        )
         mock_exit.assert_called_once_with(1)
 
     @patch("guide.cli.console")
@@ -97,7 +103,9 @@ class TestLocalRAGCLI:
         mock_response = Mock()
         mock_response.status_code = 500
         mock_get.side_effect = httpx.HTTPStatusError(
-            "Server error", request=Mock(), response=mock_response,
+            "Server error",
+            request=Mock(),
+            response=mock_response,
         )
 
         cli = LocalRAGCLI()
@@ -113,7 +121,10 @@ class TestLocalRAGCLI:
         """Test import content with auto-detected URL."""
         # Mock API response
         mock_response = Mock()
-        mock_response.json.return_value = {"documents_processed": 5, "documents_added": 3}
+        mock_response.json.return_value = {
+            "documents_processed": 5,
+            "documents_added": 3,
+        }
         mock_post.return_value = mock_response
 
         cli = LocalRAGCLI()
@@ -121,7 +132,8 @@ class TestLocalRAGCLI:
 
         # Verify API call with correct source type
         mock_post.assert_called_once_with(
-            "/api/import", json={"source": "https://example.com/doc.pdf", "source_type": "url"},
+            "/api/import",
+            json={"source": "https://example.com/doc.pdf", "source_type": "url"},
         )
 
     @patch("guide.cli.console")
@@ -130,7 +142,10 @@ class TestLocalRAGCLI:
         """Test import content with auto-detected directory."""
         # Mock API response
         mock_response = Mock()
-        mock_response.json.return_value = {"documents_processed": 10, "documents_added": 8}
+        mock_response.json.return_value = {
+            "documents_processed": 10,
+            "documents_added": 8,
+        }
         mock_post.return_value = mock_response
 
         cli = LocalRAGCLI()
@@ -138,7 +153,8 @@ class TestLocalRAGCLI:
 
         # Verify API call with correct source type
         mock_post.assert_called_once_with(
-            "/api/import", json={"source": "/path/to/docs/", "source_type": "directory"},
+            "/api/import",
+            json={"source": "/path/to/docs/", "source_type": "directory"},
         )
 
     @patch("guide.cli.console")
@@ -147,7 +163,10 @@ class TestLocalRAGCLI:
         """Test import content with auto-detected file."""
         # Mock API response
         mock_response = Mock()
-        mock_response.json.return_value = {"documents_processed": 1, "documents_added": 1}
+        mock_response.json.return_value = {
+            "documents_processed": 1,
+            "documents_added": 1,
+        }
         mock_post.return_value = mock_response
 
         cli = LocalRAGCLI()
@@ -155,7 +174,8 @@ class TestLocalRAGCLI:
 
         # Verify API call with correct source type
         mock_post.assert_called_once_with(
-            "/api/import", json={"source": "/path/to/document.pdf", "source_type": "file"},
+            "/api/import",
+            json={"source": "/path/to/document.pdf", "source_type": "file"},
         )
 
     @patch("guide.cli.console")
@@ -169,20 +189,26 @@ class TestLocalRAGCLI:
         cli.import_content("/path/to/doc.pdf", "file")
 
         # Verify error handling
-        mock_console.print.assert_any_call("❌ [red]Connection error: Connection failed[/red]")
+        mock_console.print.assert_any_call(
+            "❌ [red]Connection error: Connection failed[/red]"
+        )
         mock_exit.assert_called_once_with(1)
 
     @patch("guide.cli.console")
     @patch("httpx.Client.post")
     @patch("sys.exit")
-    def test_import_content_http_error_with_detail(self, mock_exit, mock_post, mock_console):
+    def test_import_content_http_error_with_detail(
+        self, mock_exit, mock_post, mock_console
+    ):
         """Test import content with HTTP error that has JSON detail."""
         mock_response = Mock()
         mock_response.status_code = 400
         mock_response.json.return_value = {"detail": "Invalid file format"}
 
         mock_post.side_effect = httpx.HTTPStatusError(
-            "Bad request", request=Mock(), response=mock_response,
+            "Bad request",
+            request=Mock(),
+            response=mock_response,
         )
 
         cli = LocalRAGCLI()
@@ -196,7 +222,9 @@ class TestLocalRAGCLI:
     @patch("guide.cli.console")
     @patch("httpx.Client.post")
     @patch("sys.exit")
-    def test_import_content_http_error_no_json(self, mock_exit, mock_post, mock_console):
+    def test_import_content_http_error_no_json(
+        self, mock_exit, mock_post, mock_console
+    ):
         """Test import content with HTTP error that has no JSON."""
         mock_response = Mock()
         mock_response.status_code = 500
@@ -204,7 +232,9 @@ class TestLocalRAGCLI:
         mock_response.text = "Internal Server Error"
 
         mock_post.side_effect = httpx.HTTPStatusError(
-            "Server error", request=Mock(), response=mock_response,
+            "Server error",
+            request=Mock(),
+            response=mock_response,
         )
 
         cli = LocalRAGCLI()
@@ -231,7 +261,9 @@ class TestLocalRAGCLI:
         mock_post.assert_called_once_with("/api/reset")
 
         # Verify console output
-        mock_console.print.assert_any_call("✅ [green]Database reset successfully[/green]")
+        mock_console.print.assert_any_call(
+            "✅ [green]Database reset successfully[/green]"
+        )
 
     @patch("guide.cli.console")
     @patch("httpx.Client.post")
@@ -244,7 +276,9 @@ class TestLocalRAGCLI:
         cli.reset_database()
 
         # Verify error handling
-        mock_console.print.assert_any_call("❌ [red]Connection error: Connection failed[/red]")
+        mock_console.print.assert_any_call(
+            "❌ [red]Connection error: Connection failed[/red]"
+        )
         mock_exit.assert_called_once_with(1)
 
     @patch("guide.cli.console")
@@ -266,7 +300,9 @@ class TestLocalRAGCLI:
         cli.query("What is the answer?")
 
         # Verify API call
-        mock_post.assert_called_once_with("/api/query", json={"query": "What is the answer?"})
+        mock_post.assert_called_once_with(
+            "/api/query", json={"query": "What is the answer?"}
+        )
 
         # Verify console output
         mock_console.print.assert_any_call("\n💬 [bold green]Response:[/bold green]")
@@ -288,7 +324,9 @@ class TestLocalRAGCLI:
         cli.query("What is the answer?")
 
         # Verify API call
-        mock_post.assert_called_once_with("/api/query", json={"query": "What is the answer?"})
+        mock_post.assert_called_once_with(
+            "/api/query", json={"query": "What is the answer?"}
+        )
 
         # Verify response is printed but no sources section
         mock_console.print.assert_any_call("This is the answer to your question.")
@@ -301,7 +339,9 @@ class TestLocalRAGCLI:
         mock_response = Mock()
         mock_response.status_code = 400
         mock_post.side_effect = httpx.HTTPStatusError(
-            "Bad request", request=Mock(), response=mock_response,
+            "Bad request",
+            request=Mock(),
+            response=mock_response,
         )
 
         cli = LocalRAGCLI()
@@ -439,7 +479,11 @@ class TestMainFunction:
     @patch("guide.cli.console")
     @patch("sys.exit")
     def test_main_keyboard_interrupt(
-        self, mock_exit, mock_console, mock_parse_args, mock_cli_class,
+        self,
+        mock_exit,
+        mock_console,
+        mock_parse_args,
+        mock_cli_class,
     ):
         """Test main function handling KeyboardInterrupt."""
         # Mock args for any command
@@ -457,7 +501,9 @@ class TestMainFunction:
         main()
 
         # Verify interrupt handling
-        mock_console.print.assert_called_with("\n👋 [yellow]Interrupted by user[/yellow]")
+        mock_console.print.assert_called_with(
+            "\n👋 [yellow]Interrupted by user[/yellow]"
+        )
         mock_exit.assert_called_once_with(1)
 
     def test_main_entry_point(self):

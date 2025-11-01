@@ -237,7 +237,8 @@ class TestVectorStoreBasics:
         with tempfile.TemporaryDirectory() as temp_dir:
             custom_path = Path(temp_dir) / "custom_path"
             vs = VectorStore(
-                persist_directory=str(custom_path), collection_name="custom_collection",
+                persist_directory=str(custom_path),
+                collection_name="custom_collection",
             )
 
             assert vs.persist_directory == str(custom_path)
@@ -424,7 +425,9 @@ class TestVectorStoreChunking:
                 "content.chunk_overlap": 200,
             }.get(key, default)
 
-            doc = Document(source="short.txt", content="Short content", metadata={"type": "test"})
+            doc = Document(
+                source="short.txt", content="Short content", metadata={"type": "test"}
+            )
 
             chunks = vs._chunk_document(doc)
 
@@ -625,7 +628,9 @@ class TestVectorStoreAdvanced:
         doc_content = "Duplicate content"
         documents = [
             Document(source="test1.txt", content=doc_content, metadata={}),
-            Document(source="test2.txt", content=doc_content, metadata={}),  # Same content
+            Document(
+                source="test2.txt", content=doc_content, metadata={}
+            ),  # Same content
         ]
 
         # Mock _is_document_duplicate to return True for the second document
@@ -672,9 +677,12 @@ class TestVectorStoreAdvanced:
 
         assert result == 2
         mock_chroma_client["collection"].get.assert_called_once_with(
-            where={"source": "test.txt"}, include=["metadatas"],
+            where={"source": "test.txt"},
+            include=["metadatas"],
         )
-        mock_chroma_client["collection"].delete.assert_called_once_with(ids=["doc1", "doc2"])
+        mock_chroma_client["collection"].delete.assert_called_once_with(
+            ids=["doc1", "doc2"]
+        )
 
     def test_delete_documents_by_source_no_matches(self, mock_chroma_client):
         """Test delete_documents by source when no documents match."""
@@ -777,7 +785,8 @@ class TestVectorStorePrivateMethods:
 
         assert result is True
         mock_chroma_client["collection"].get.assert_called_once_with(
-            where={"document_hash": "test-hash"}, limit=1,
+            where={"document_hash": "test-hash"},
+            limit=1,
         )
 
     def test_is_document_duplicate_exception(self, mock_chroma_client):
@@ -820,7 +829,8 @@ class TestVectorStorePrivateMethods:
         assert result is False
         # Should call the chunk duplicate method
         mock_chroma_client["collection"].get.assert_called_with(
-            where={"chunk_hash": "test-hash"}, limit=1,
+            where={"chunk_hash": "test-hash"},
+            limit=1,
         )
 
     def test_add_documents_duplicate_chunks(self, mock_chroma_client):

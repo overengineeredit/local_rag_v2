@@ -23,6 +23,7 @@ def client():
     try:
         from guide.main import config
         from guide.vector_store import VectorStore
+
         vector_db_dir = config.get("storage.vector_db_dir", "./data/chromadb")
         vector_store = VectorStore(persist_directory=vector_db_dir)
         vector_store.clear_all_documents()
@@ -40,7 +41,8 @@ def test_documents():
 
     # Create technical documentation
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-        f.write("""
+        f.write(
+            """
         Local RAG System Documentation
 
         Overview:
@@ -59,12 +61,14 @@ def test_documents():
         The system uses a single-process architecture optimized for resource-
         constrained devices like Raspberry Pi 5. All components run in the same
         Python process to minimize memory overhead and complexity.
-        """)
+        """
+        )
         documents["technical_doc"] = f.name
 
     # Create FAQ document
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
-        f.write("""
+        f.write(
+            """
         # Frequently Asked Questions
 
         ## Installation and Setup
@@ -91,12 +95,14 @@ def test_documents():
         A: Response quality depends on the relevance of uploaded documents and
         the sophistication of queries. The system retrieves the most relevant
         context before generating responses.
-        """)
+        """
+        )
         documents["faq_doc"] = f.name
 
     # Create configuration guide
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-        f.write("""
+        f.write(
+            """
         Configuration Guide
 
         The Local RAG system uses YAML configuration files for customization.
@@ -129,7 +135,8 @@ def test_documents():
         - chunk_size: 1000 (document chunk size)
         - chunk_overlap: 200 (overlap between chunks)
         - max_file_size_mb: 50 (file size limit)
-        """)
+        """
+        )
         documents["config_doc"] = f.name
 
     yield documents
@@ -194,7 +201,9 @@ class TestCompleteRAGWorkflow:
             }
 
             response = client.post("/api/query", json=query_request)
-            assert response.status_code == 200, f"Query failed: {test_query['description']}"
+            assert (
+                response.status_code == 200
+            ), f"Query failed: {test_query['description']}"
 
             response_data = response.json()
             assert "response" in response_data
@@ -207,9 +216,13 @@ class TestCompleteRAGWorkflow:
             # Check that response is relevant (basic keyword checking)
             # Note: In real tests, this would be more sophisticated
             relevant_keywords = sum(
-                1 for topic in test_query["expected_topics"] if topic.lower() in response_text
+                1
+                for topic in test_query["expected_topics"]
+                if topic.lower() in response_text
             )
-            assert relevant_keywords > 0, f"Response not relevant to query: {test_query['query']}"
+            assert (
+                relevant_keywords > 0
+            ), f"Response not relevant to query: {test_query['query']}"
 
             # Validate sources
             sources = response_data["sources"]
@@ -273,7 +286,10 @@ class TestCompleteRAGWorkflow:
             assert response_data["documents_processed"] >= 3
 
             # Test query after directory upload
-            query_request = {"query": "What file formats are supported?", "include_sources": True}
+            query_request = {
+                "query": "What file formats are supported?",
+                "include_sources": True,
+            }
 
             response = client.post("/api/query", json=query_request)
             assert response.status_code == 200
@@ -343,7 +359,10 @@ class TestWorkflowErrorRecovery:
                 valid_uploads += 1
 
         # Try to upload invalid document
-        invalid_upload_request = {"source": "/nonexistent/file.txt", "source_type": "file"}
+        invalid_upload_request = {
+            "source": "/nonexistent/file.txt",
+            "source_type": "file",
+        }
 
         response = client.post("/api/import", json=invalid_upload_request)
         assert response.status_code == 500  # Should fail

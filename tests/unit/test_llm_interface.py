@@ -19,7 +19,11 @@ class TestQuery:
         """Test basic query initialization."""
         from guide.llm_interface import Query
 
-        query = Query(query_id="test_001", text="What is the capital of France?", user_id="user123")
+        query = Query(
+            query_id="test_001",
+            text="What is the capital of France?",
+            user_id="user123",
+        )
 
         assert query.query_id == "test_001"
         assert query.text == "What is the capital of France?"
@@ -126,7 +130,9 @@ class TestQuery:
 
         # Add context document
         query.add_context_document(
-            content="Test content", metadata={"source": "test.txt"}, distance=0.1,
+            content="Test content",
+            metadata={"source": "test.txt"},
+            distance=0.1,
         )
 
         assert len(query.context_documents) == 1
@@ -195,7 +201,9 @@ class TestLLMInterface:
         """Test initialization with custom parameters."""
         from guide.llm_interface import LLMInterface
 
-        llm = LLMInterface("/path/to/model.gguf", n_ctx=4096, n_gpu_layers=10, temperature=0.5)
+        llm = LLMInterface(
+            "/path/to/model.gguf", n_ctx=4096, n_gpu_layers=10, temperature=0.5
+        )
 
         assert llm.default_params["n_ctx"] == 4096
         assert llm.default_params["n_gpu_layers"] == 10
@@ -205,8 +213,12 @@ class TestLLMInterface:
         """Test initialization when llama-cpp-python is missing."""
         from guide.llm_interface import LLMInterface
 
-        with patch("llama_cpp.Llama", side_effect=ImportError("No module named 'llama_cpp'")):
-            with pytest.raises(RuntimeError, match="llama-cpp-python dependency missing"):
+        with patch(
+            "llama_cpp.Llama", side_effect=ImportError("No module named 'llama_cpp'")
+        ):
+            with pytest.raises(
+                RuntimeError, match="llama-cpp-python dependency missing"
+            ):
                 LLMInterface("/path/to/model.gguf")
 
     def test_init_model_loading_failure(self):
@@ -402,7 +414,8 @@ class TestLLMUtilities:
             mock_config.get.return_value = 2048
 
             result_context, was_truncated = llm.validate_context_length(
-                "Short query", "Short context",
+                "Short query",
+                "Short context",
             )
 
             assert result_context == "Short context"
@@ -429,7 +442,9 @@ class TestLLMUtilities:
             mock_estimate.side_effect = estimate_side_effect
 
             long_context = "Long context that should be truncated. " * 100
-            result_context, was_truncated = llm.validate_context_length("Query", long_context)
+            result_context, was_truncated = llm.validate_context_length(
+                "Query", long_context
+            )
 
             assert len(result_context) < len(long_context)
             assert was_truncated is True
@@ -469,7 +484,9 @@ class TestLLMUtilities:
 
         llm = LLMInterface("/path/to/model.gguf")
 
-        with patch.object(llm, "generate_complete", side_effect=Exception("Health check error")):
+        with patch.object(
+            llm, "generate_complete", side_effect=Exception("Health check error")
+        ):
             result = llm.health_check()
 
             assert result["status"] == "error"
@@ -525,7 +542,9 @@ class TestLLMInterfaceGenerationErrorHandling:
             llm = LLMInterface("/path/to/model.gguf")
 
             # Mock generate to raise an exception
-            with patch.object(llm, "generate", side_effect=Exception("Generation error")):
+            with patch.object(
+                llm, "generate", side_effect=Exception("Generation error")
+            ):
                 with pytest.raises(Exception, match="Generation error"):
                     llm.generate_complete("test prompt")
 
@@ -543,12 +562,17 @@ class TestLLMInterfaceQueryProcessing:
 
             # Create a test query
             query = Query(
-                query_id="test-query", text="What is AI?", temperature=0.7, max_tokens=100,
+                query_id="test-query",
+                text="What is AI?",
+                temperature=0.7,
+                max_tokens=100,
             )
 
             # Mock the generation method
             with patch.object(
-                llm, "generate_complete", return_value="AI is artificial intelligence.",
+                llm,
+                "generate_complete",
+                return_value="AI is artificial intelligence.",
             ) as mock_generate:
                 result = llm.process_query(query)
 
@@ -593,14 +617,21 @@ class TestLLMInterfaceQueryProcessing:
             )
 
             with patch.object(
-                llm, "generate_complete", return_value="ML is about learning from data.",
+                llm,
+                "generate_complete",
+                return_value="ML is about learning from data.",
             ) as mock_generate:
                 llm.process_query(query)
 
                 # Verify context was included in the call
                 call_args = mock_generate.call_args
-                assert "Machine learning is a subset of AI." in call_args.kwargs["context"]
-                assert "It uses algorithms to learn patterns." in call_args.kwargs["context"]
+                assert (
+                    "Machine learning is a subset of AI." in call_args.kwargs["context"]
+                )
+                assert (
+                    "It uses algorithms to learn patterns."
+                    in call_args.kwargs["context"]
+                )
 
     def test_process_query_exception_handling(self):
         """Test query processing exception handling."""
@@ -613,7 +644,9 @@ class TestLLMInterfaceQueryProcessing:
             query = Query(query_id="test-query", text="Test query")
 
             # Mock generate_complete to raise an exception
-            with patch.object(llm, "generate_complete", side_effect=Exception("Generation failed")):
+            with patch.object(
+                llm, "generate_complete", side_effect=Exception("Generation failed")
+            ):
                 with pytest.raises(Exception, match="Generation failed"):
                     llm.process_query(query)
 
@@ -640,10 +673,13 @@ class TestLLMInterfaceContextTruncation:
 
             with patch("guide.config.get", return_value=100):  # Small context window
                 with patch.object(
-                    llm, "estimate_tokens", side_effect=lambda text: len(text.split()),
+                    llm,
+                    "estimate_tokens",
+                    side_effect=lambda text: len(text.split()),
                 ):
                     result_context, was_truncated = llm.validate_context_length(
-                        very_long_query, short_context,
+                        very_long_query,
+                        short_context,
                     )
 
                     # Should return empty context and warning when query too long
@@ -663,10 +699,13 @@ class TestLLMInterfaceContextTruncation:
 
             with patch("guide.config.get", return_value=500):  # Small context window
                 with patch.object(
-                    llm, "estimate_tokens", side_effect=lambda text: len(text.split()),
+                    llm,
+                    "estimate_tokens",
+                    side_effect=lambda text: len(text.split()),
                 ):
                     result_context, was_truncated = llm.validate_context_length(
-                        short_query, very_long_context,
+                        short_query,
+                        very_long_context,
                     )
 
                     # Context should be truncated
@@ -687,10 +726,13 @@ class TestLLMInterfaceContextTruncation:
 
             with patch("guide.config.get", return_value=2048):  # Large context window
                 with patch.object(
-                    llm, "estimate_tokens", side_effect=lambda text: len(text.split()),
+                    llm,
+                    "estimate_tokens",
+                    side_effect=lambda text: len(text.split()),
                 ):
                     result_context, was_truncated = llm.validate_context_length(
-                        short_query, short_context,
+                        short_query,
+                        short_context,
                     )
 
                     # No truncation should occur

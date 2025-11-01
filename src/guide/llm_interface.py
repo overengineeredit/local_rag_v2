@@ -25,7 +25,9 @@ class Query:
     include_sources: bool = True  # Whether to include sources in response
     temperature: float | None = None  # Override default temperature
     max_tokens: int | None = None  # Override default max tokens
-    context_documents: list[dict[str, Any]] = field(default_factory=list)  # Retrieved context
+    context_documents: list[dict[str, Any]] = field(
+        default_factory=list
+    )  # Retrieved context
     response: str = ""  # Generated response
     metadata: dict[str, Any] = field(default_factory=dict)  # Additional metadata
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -46,7 +48,9 @@ class Query:
             "response": self.response,
             "metadata": self.metadata,
             "created_at": self.created_at.isoformat(),
-            "processed_at": self.processed_at.isoformat() if self.processed_at else None,
+            "processed_at": (
+                self.processed_at.isoformat() if self.processed_at else None
+            ),
             "processing_time": self.processing_time,
         }
 
@@ -86,7 +90,9 @@ class Query:
         self.processed_at = datetime.now(UTC)
         self.processing_time = processing_time
 
-    def add_context_document(self, content: str, metadata: dict[str, Any], distance: float) -> None:
+    def add_context_document(
+        self, content: str, metadata: dict[str, Any], distance: float
+    ) -> None:
         """Add a context document to the query."""
         self.context_documents.append(
             {
@@ -160,7 +166,9 @@ class LLMInterface:
             logger.info("Model loaded successfully")
 
         except ImportError:
-            logger.error("llama-cpp-python not installed. Run: pip install llama-cpp-python")
+            logger.error(
+                "llama-cpp-python not installed. Run: pip install llama-cpp-python"
+            )
             raise RuntimeError("llama-cpp-python dependency missing")
         except Exception as e:
             logger.error(f"Failed to load model: {e}")
@@ -188,8 +196,10 @@ class LLMInterface:
             from . import config
 
             generation_params = {
-                "max_tokens": kwargs.get("max_tokens") or config.get("llm.max_tokens", 512),
-                "temperature": kwargs.get("temperature") or config.get("llm.temperature", 0.7),
+                "max_tokens": kwargs.get("max_tokens")
+                or config.get("llm.max_tokens", 512),
+                "temperature": kwargs.get("temperature")
+                or config.get("llm.temperature", 0.7),
                 "top_p": kwargs.get("top_p", 0.9),
                 "top_k": kwargs.get("top_k", 40),
                 "repeat_penalty": kwargs.get("repeat_penalty", 1.1),
@@ -317,7 +327,10 @@ class LLMInterface:
         return len(text) // 4
 
     def validate_context_length(
-        self, prompt: str, context: str, max_context_ratio: float = 0.7,
+        self,
+        prompt: str,
+        context: str,
+        max_context_ratio: float = 0.7,
     ) -> tuple[str, bool]:
         """Validate and truncate context to fit within model limits.
 

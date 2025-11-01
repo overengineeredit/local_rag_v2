@@ -20,6 +20,7 @@ def client():
 
     # Clear database before each test
     from guide.vector_store import VectorStore
+
     vector_store = VectorStore("./data/chromadb")
     vector_store.clear_all_documents()
 
@@ -232,7 +233,10 @@ class TestDocumentManagementOperations:
                 assert data["status"] == "success"
             else:
                 # Size limit error case
-                assert response.status_code in [413, 500]  # Payload too large or processing error
+                assert response.status_code in [
+                    413,
+                    500,
+                ]  # Payload too large or processing error
 
         finally:
             # Cleanup

@@ -132,7 +132,10 @@ class TestRequestResponseModels:
     def test_import_request_with_all_fields(self):
         """Test ImportRequest with all fields specified."""
         req = ImportRequest(
-            source="/path/to/dir", source_type="directory", chunk_size=2000, chunk_overlap=400,
+            source="/path/to/dir",
+            source_type="directory",
+            chunk_size=2000,
+            chunk_overlap=400,
         )
         assert req.source == "/path/to/dir"
         assert req.source_type == "directory"
@@ -151,7 +154,9 @@ class TestRequestResponseModels:
 
     def test_download_model_request_basic(self):
         """Test basic DownloadModelRequest creation."""
-        req = DownloadModelRequest(url="https://example.com/model.bin", model_name="test-model")
+        req = DownloadModelRequest(
+            url="https://example.com/model.bin", model_name="test-model"
+        )
         assert req.url == "https://example.com/model.bin"
         assert req.model_name == "test-model"
         assert req.expected_hash is None  # default value
@@ -159,7 +164,9 @@ class TestRequestResponseModels:
     def test_download_model_request_with_hash(self):
         """Test DownloadModelRequest with expected hash."""
         req = DownloadModelRequest(
-            url="https://example.com/model.bin", model_name="test-model", expected_hash="abc123",
+            url="https://example.com/model.bin",
+            model_name="test-model",
+            expected_hash="abc123",
         )
         assert req.url == "https://example.com/model.bin"
         assert req.model_name == "test-model"
@@ -168,7 +175,9 @@ class TestRequestResponseModels:
     def test_error_response_creation(self):
         """Test ErrorResponse creation."""
         resp = ErrorResponse(
-            error="validation_error", message="Test error", details={"key": "value"},
+            error="validation_error",
+            message="Test error",
+            details={"key": "value"},
         )
         assert resp.error == "validation_error"
         assert resp.message == "Test error"
@@ -185,7 +194,9 @@ class TestRequestResponseModels:
 
     def test_error_response_with_request_id(self):
         """Test ErrorResponse with request ID."""
-        resp = ErrorResponse(error="server_error", message="Internal error", request_id="req-123")
+        resp = ErrorResponse(
+            error="server_error", message="Internal error", request_id="req-123"
+        )
         assert resp.error == "server_error"
         assert resp.message == "Internal error"
         assert resp.request_id == "req-123"
@@ -279,7 +290,9 @@ class TestErrorHandlers:
         ]
 
         with patch("guide.web_interface.logger") as mock_logger:
-            response = await handle_validation_error(mock_request, mock_validation_error)
+            response = await handle_validation_error(
+                mock_request, mock_validation_error
+            )
 
         # Check response
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -339,7 +352,8 @@ class TestSetupFunctions:
         # Check for specific exception types
         handler_keys = list(app.exception_handlers.keys())
         handler_names = [
-            key.__name__ if hasattr(key, "__name__") else str(key) for key in handler_keys
+            key.__name__ if hasattr(key, "__name__") else str(key)
+            for key in handler_keys
         ]
 
         # Should include our custom exceptions
@@ -382,7 +396,9 @@ class TestSetupFunctions:
 
     @patch("guide.web_interface.ModelManager")
     @patch("guide.web_interface.ContentManager")
-    def test_setup_routes_with_dependencies(self, mock_content_manager, mock_model_manager):
+    def test_setup_routes_with_dependencies(
+        self, mock_content_manager, mock_model_manager
+    ):
         """Test route setup with proper dependency initialization."""
         from fastapi import FastAPI
 
@@ -494,7 +510,9 @@ class TestAPIEndpoints:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "unhealthy"  # Should be unhealthy due to component errors
+        assert (
+            data["status"] == "unhealthy"
+        )  # Should be unhealthy due to component errors
 
     def test_api_status_endpoint(self, client):
         """Test the API status endpoint."""
@@ -581,7 +599,10 @@ class TestAPIEndpoints:
 
     def test_download_model_endpoint_error_handling(self, client):
         """Test the download model endpoint error handling."""
-        request_data = {"url": "https://example.com/model.bin", "model_name": "test-model"}
+        request_data = {
+            "url": "https://example.com/model.bin",
+            "model_name": "test-model",
+        }
 
         with patch("guide.web_interface.ModelManager") as mock_model_manager:
             # Configure the mock to raise an exception when download_model is called
@@ -726,7 +747,10 @@ class TestModelEndpointsIntegration:
         mock_path = Path("/tmp/models/test-model.bin")
         app.state.mock_model_manager.download_model.return_value = mock_path
 
-        request_data = {"url": "https://example.com/model.bin", "model_name": "test-model"}
+        request_data = {
+            "url": "https://example.com/model.bin",
+            "model_name": "test-model",
+        }
 
         response = client_with_mocks.post("/api/models/download", json=request_data)
 
@@ -957,7 +981,11 @@ class TestEdgeCasesAndErrorHandling:
 
     def test_query_endpoint_with_llm_initialized(self, client):
         """Test query endpoint with LLM properly initialized (using MockLLM fallback)."""
-        request_data = {"query": "test query", "max_results": 3, "include_sources": True}
+        request_data = {
+            "query": "test query",
+            "max_results": 3,
+            "include_sources": True,
+        }
 
         # Should work with MockLLM fallback
         response = client.post("/api/query", json=request_data)
@@ -1016,7 +1044,9 @@ class TestEdgeCasesAndErrorHandling:
     def test_invalid_field_types(self, client):
         """Test handling of invalid field types."""
         # Invalid type for max_results (should be int)
-        response = client.post("/api/query", json={"query": "test", "max_results": "invalid"})
+        response = client.post(
+            "/api/query", json={"query": "test", "max_results": "invalid"}
+        )
 
         assert response.status_code == 422
 

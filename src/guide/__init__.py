@@ -80,7 +80,12 @@ class Config:
     def _apply_defaults(self) -> None:
         """Apply default configuration values."""
         defaults = {
-            "server": {"host": "127.0.0.1", "port": 8080, "workers": 1, "reload": False},
+            "server": {
+                "host": "127.0.0.1",
+                "port": 8080,
+                "workers": 1,
+                "reload": False,
+            },
             "storage": {
                 "data_dir": "./data",
                 "models_dir": "./models",
@@ -94,7 +99,11 @@ class Config:
                 "n_threads": None,  # Auto-detect
             },
             "embedding": {"model": "all-MiniLM-L6-v2", "batch_size": 32},
-            "content": {"chunk_size": 1000, "chunk_overlap": 200, "max_file_size_mb": 50},
+            "content": {
+                "chunk_size": 1000,
+                "chunk_overlap": 200,
+                "max_file_size_mb": 50,
+            },
             "logging": {
                 "level": "INFO",
                 "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -109,7 +118,11 @@ class Config:
         """Deep merge two dictionaries."""
         result = base.copy()
         for key, value in override.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            if (
+                key in result
+                and isinstance(result[key], dict)
+                and isinstance(value, dict)
+            ):
                 result[key] = self._deep_merge(result[key], value)
             else:
                 result[key] = value

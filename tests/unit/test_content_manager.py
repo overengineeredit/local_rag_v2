@@ -82,7 +82,9 @@ class TestContentManager:
 
                 assert len(result) > 0
                 # Verify it uses HTML processing path
-                assert result[0]["content"] == html_content  # Currently just returns raw content
+                assert (
+                    result[0]["content"] == html_content
+                )  # Currently just returns raw content
 
             finally:
                 Path(f.name).unlink()
@@ -120,7 +122,9 @@ class TestContentManager:
             # Create test files
             (temp_path / "file1.txt").write_text("Content of file 1")
             (temp_path / "file2.md").write_text("# File 2\nMarkdown content")
-            (temp_path / "file3.html").write_text("<html><body>HTML content</body></html>")
+            (temp_path / "file3.html").write_text(
+                "<html><body>HTML content</body></html>"
+            )
             (temp_path / "ignored.pdf").write_text("Should be ignored")
 
             # Create subdirectory
@@ -216,7 +220,9 @@ class TestContentManager:
         """Test HTML text extraction (placeholder implementation)."""
         cm = ContentManager()
 
-        html_content = "<html><head><title>Test</title></head><body>Content</body></html>"
+        html_content = (
+            "<html><head><title>Test</title></head><body>Content</body></html>"
+        )
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as f:
             f.write(html_content)
@@ -455,7 +461,9 @@ class TestContentManager:
             with pytest.raises(ValueError):
                 cm.ingest_file("/some/file.txt")
 
-            mock_logger.error.assert_called_with("Error processing /some/file.txt: Read error")
+            mock_logger.error.assert_called_with(
+                "Error processing /some/file.txt: Read error"
+            )
 
     @patch("guide.content_manager.logger")
     def test_logging_directory_processing(self, mock_logger):

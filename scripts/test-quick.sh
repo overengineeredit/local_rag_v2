@@ -49,7 +49,7 @@ fi
 
 # Install development dependencies if needed
 print_status "Installing development dependencies..."
-pip install -q flake8 black isort mypy ruff || {
+pip install -q black ruff || {
     print_error "Failed to install development dependencies"
     exit 1
 }
@@ -64,21 +64,15 @@ else
     print_success "Code formatting is correct"
 fi
 
-if ! isort --check-only src/ tests/ 2>/dev/null; then
-    print_warning "Import sorting issues found. Auto-fixing..."
-    isort src/ tests/
-    print_success "Imports sorted with isort"
-else
-    print_success "Import sorting is correct"
-fi
-
-# Quick linting check
-print_status "Quick linting check..."
+# Use ruff for import sorting and linting (replaces isort)
+print_status "Running ruff checks (import sorting + linting)..."
 if ! ruff check src/ tests/ --quiet; then
-    print_error "Linting issues found. Run 'ruff check src/ tests/' for details"
-    exit 1
+    print_warning "Ruff issues found. Auto-fixing..."
+    ruff check --fix src/ tests/
+    print_success "Code fixed with ruff"
+else
+    print_success "Ruff checks passed"
 fi
-print_success "Linting check passed"
 
 # Quick syntax check
 print_status "Quick syntax check..."

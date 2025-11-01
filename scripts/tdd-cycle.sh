@@ -124,10 +124,9 @@ print_step "6" "Code quality checks..."
 # Format and lint the implementation
 if [ -f "$IMPL_FILE" ]; then
     black "$IMPL_FILE" "$TEST_FILE"
-    isort "$IMPL_FILE" "$TEST_FILE"
     
-    if ! ruff check "$IMPL_FILE" "$TEST_FILE" --quiet; then
-        print_error "Linting issues found. Fix before committing."
+    if ! ruff check --fix "$IMPL_FILE" "$TEST_FILE" --quiet; then
+        print_error "Ruff issues found that couldn't be auto-fixed."
         exit 1
     fi
     print_success "✅ Code quality checks passed"

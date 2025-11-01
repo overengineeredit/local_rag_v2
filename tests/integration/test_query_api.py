@@ -19,6 +19,7 @@ def client():
 
     # Clear database before each test
     from guide.vector_store import VectorStore
+
     vector_store = VectorStore("./data/chromadb")
     vector_store.clear_all_documents()
 
@@ -76,7 +77,10 @@ class TestQueryEndpointContract:
     def test_query_without_sources(self, populated_system):
         """Test query with include_sources set to False."""
         # Arrange
-        request_data = {"query": "Tell me about privacy features", "include_sources": False}
+        request_data = {
+            "query": "Tell me about privacy features",
+            "include_sources": False,
+        }
 
         # Act
         response = populated_system.post("/api/query", json=request_data)
@@ -149,7 +153,10 @@ class TestQueryEndpointContract:
         response = populated_system.post("/api/query", json=request_data)
 
         # Assert - Should return validation error or handle gracefully
-        assert response.status_code in [200, 422]  # Either handled gracefully or validation error
+        assert response.status_code in [
+            200,
+            422,
+        ]  # Either handled gracefully or validation error
 
         if response.status_code == 200:
             # If handled gracefully, should return empty or limited results
@@ -214,7 +221,11 @@ class TestQueryBusinessLogic:
         # This test verifies the system handles empty database gracefully
 
         # Arrange
-        request_data = {"query": "privacy features", "max_results": 3, "include_sources": True}
+        request_data = {
+            "query": "privacy features",
+            "max_results": 3,
+            "include_sources": True,
+        }
 
         # Act
         response = populated_system.post("/api/query", json=request_data)
@@ -311,7 +322,9 @@ class TestQueryErrorHandling:
         """Test handling of malformed query requests."""
         # Act - Send malformed JSON
         response = client.post(
-            "/api/query", data="{'malformed': json}", headers={"Content-Type": "application/json"},
+            "/api/query",
+            data="{'malformed': json}",
+            headers={"Content-Type": "application/json"},
         )
 
         # Assert

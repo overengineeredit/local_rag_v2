@@ -68,7 +68,9 @@ class TestThermalMonitor:
             mock_zone0_temp.exists.return_value = True
 
             # Setup the path construction chain
-            mock_thermal_base.__truediv__.return_value.__truediv__.return_value = mock_zone0_temp
+            mock_thermal_base.__truediv__.return_value.__truediv__.return_value = (
+                mock_zone0_temp
+            )
             mock_path_class.return_value = mock_thermal_base
 
             monitor = ThermalMonitor()
@@ -94,7 +96,9 @@ class TestThermalMonitor:
             # Mock zone0 not existing
             mock_zone0_temp = MagicMock()
             mock_zone0_temp.exists.return_value = False
-            mock_thermal_base.__truediv__.return_value.__truediv__.return_value = mock_zone0_temp
+            mock_thermal_base.__truediv__.return_value.__truediv__.return_value = (
+                mock_zone0_temp
+            )
 
             mock_path_class.return_value = mock_thermal_base
 
@@ -498,7 +502,10 @@ class TestCreateApp:
             patch("guide.main.setup_routes"),
             patch("guide.main.thermal_monitor") as mock_thermal_monitor,
         ):
-            mock_config.validate.return_value = ["Missing required field", "Invalid value"]
+            mock_config.validate.return_value = [
+                "Missing required field",
+                "Invalid value",
+            ]
             mock_thermal_monitor.thermal_zone_path = None
 
             app = create_app()
@@ -560,7 +567,9 @@ class TestMain:
         from guide.main import main
 
         with (
-            patch("guide.main.create_app", side_effect=Exception("App creation failed")),
+            patch(
+                "guide.main.create_app", side_effect=Exception("App creation failed")
+            ),
             patch("logging.basicConfig") as mock_basic_config,
             patch("sys.exit") as mock_exit,
         ):

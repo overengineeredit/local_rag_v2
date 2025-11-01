@@ -114,8 +114,7 @@ def test_validate_gguf_header_unsupported_version():
 
     # Mock GGUF with version 1 (unsupported)
     gguf_content = (
-        b"GGUF"  # Magic number
-        + b"\x01\x00\x00\x00"  # Version 1 (unsupported)
+        b"GGUF" + b"\x01\x00\x00\x00"  # Magic number  # Version 1 (unsupported)
     )
 
     with patch("builtins.open", mock_open(read_data=gguf_content)):
@@ -603,14 +602,17 @@ def test_download_model_progress_logging():
                         "sha256": "mock_hash",
                         "gguf_info": {"version": 3, "tensor_count": 100},
                     }
-                    with patch.object(mm, "validate_model", return_value=validation_return):
+                    with patch.object(
+                        mm, "validate_model", return_value=validation_return
+                    ):
                         mm.download_model("http://example.com/model.bin", "test-model")
 
                     # Should log progress due to time gap
                     download_calls = [
                         call
                         for call in mock_info.call_args_list
-                        if "Downloaded:" in str(call) or "Download progress" in str(call)
+                        if "Downloaded:" in str(call)
+                        or "Download progress" in str(call)
                     ]
                     assert len(download_calls) > 0
 
@@ -662,12 +664,16 @@ def test_download_model_progress_logging_no_content_length():
                         "sha256": "mock_hash",
                         "gguf_info": {"version": 3, "tensor_count": 100},
                     }
-                    with patch.object(mm, "validate_model", return_value=validation_return):
+                    with patch.object(
+                        mm, "validate_model", return_value=validation_return
+                    ):
                         mm.download_model("http://example.com/model.bin", "test-model")
 
                     # Should log downloaded size without percentage
                     download_calls = [
-                        call for call in mock_info.call_args_list if "Downloaded:" in str(call)
+                        call
+                        for call in mock_info.call_args_list
+                        if "Downloaded:" in str(call)
                     ]
                     assert len(download_calls) > 0
 
@@ -694,7 +700,9 @@ def test_download_model_request_exception_cleanup():
 
             # Mock session.get to raise RequestException
             with patch.object(
-                mm.session, "get", side_effect=requests.RequestException("Network error"),
+                mm.session,
+                "get",
+                side_effect=requests.RequestException("Network error"),
             ):
                 with pytest.raises(ModelDownloadError, match="Download failed"):
                     mm.download_model("http://example.com/model.bin", "test-model")
@@ -736,7 +744,9 @@ def test_download_model_validation_exception_cleanup():
 
             with patch.object(mm.session, "get", return_value=mock_context):
                 with patch.object(
-                    mm, "validate_model", side_effect=ModelValidationError("Invalid model"),
+                    mm,
+                    "validate_model",
+                    side_effect=ModelValidationError("Invalid model"),
                 ):
                     with pytest.raises(ModelValidationError):
                         mm.download_model("http://example.com/model.bin", "test-model")
@@ -778,10 +788,13 @@ def test_download_model_unexpected_exception_cleanup():
 
             with patch.object(mm.session, "get", return_value=mock_context):
                 with patch.object(
-                    mm, "validate_model", side_effect=RuntimeError("Unexpected error"),
+                    mm,
+                    "validate_model",
+                    side_effect=RuntimeError("Unexpected error"),
                 ):
                     with pytest.raises(
-                        ModelDownloadError, match="Unexpected error during download",
+                        ModelDownloadError,
+                        match="Unexpected error during download",
                     ):
                         mm.download_model("http://example.com/model.bin", "test-model")
 

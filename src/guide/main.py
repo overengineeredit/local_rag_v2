@@ -56,7 +56,9 @@ class ThermalMonitor:
         thermal_base = Path("/sys/class/thermal")
 
         if not thermal_base.exists():
-            self.logger.warning("Thermal monitoring not available - /sys/class/thermal not found")
+            self.logger.warning(
+                "Thermal monitoring not available - /sys/class/thermal not found"
+            )
             return
 
         # Look for thermal zones
@@ -86,7 +88,9 @@ class ThermalMonitor:
                 zone_numbers.sort(reverse=True)  # Highest first
                 self.thermal_zone_path = zone_numbers[0][1]
                 zone_name = zone_numbers[0][1].parent.name
-                self.logger.info(f"Using {zone_name} for temperature monitoring (fallback)")
+                self.logger.info(
+                    f"Using {zone_name} for temperature monitoring (fallback)"
+                )
 
     def _read_temperature(self) -> float | None:
         """Read temperature from thermal zone.
@@ -134,7 +138,9 @@ class ThermalMonitor:
         self.is_monitoring = True
         self.monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self.monitor_thread.start()
-        self.logger.info(f"Thermal monitoring started (interval: {self.check_interval}s)")
+        self.logger.info(
+            f"Thermal monitoring started (interval: {self.check_interval}s)"
+        )
 
     def stop_monitoring(self) -> None:
         """Stop thermal monitoring."""
@@ -164,7 +170,9 @@ class ThermalMonitor:
 
                         # Log temperature info (less frequent to avoid spam)
                         if len(self.temperature_history) % 10 == 0:  # Every 10 readings
-                            self.logger.debug(f"Temperature: {temp:.1f}°C (avg: {avg_temp:.1f}°C)")
+                            self.logger.debug(
+                                f"Temperature: {temp:.1f}°C (avg: {avg_temp:.1f}°C)"
+                            )
 
                 else:
                     failure_count += 1
@@ -215,7 +223,9 @@ class ThermalMonitor:
             )
             # Note: Actual throttling would be implemented in LLM interface
 
-        elif avg_temp <= self.resume_threshold and (self.is_throttled or self.is_halted):
+        elif avg_temp <= self.resume_threshold and (
+            self.is_throttled or self.is_halted
+        ):
             was_halted = self.is_halted
             self.is_halted = False
             self.is_throttled = False
@@ -382,7 +392,9 @@ def create_app() -> FastAPI:
     # Validate configuration
     config_issues = config.validate()
     if config_issues:
-        logger.warning("Configuration validation issues found", extra={"issues": config_issues})
+        logger.warning(
+            "Configuration validation issues found", extra={"issues": config_issues}
+        )
 
     app = FastAPI(
         title="Local RAG",

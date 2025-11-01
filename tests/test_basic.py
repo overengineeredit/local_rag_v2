@@ -54,7 +54,9 @@ def test_query_request_model():
     assert request.include_sources is True  # default value
 
     # Test with all fields
-    request2 = QueryRequest(query="another query", max_results=10, include_sources=False)
+    request2 = QueryRequest(
+        query="another query", max_results=10, include_sources=False
+    )
     assert request2.query == "another query"
     assert request2.max_results == 10
     assert request2.include_sources is False
@@ -71,7 +73,10 @@ def test_import_request_model():
 
     # Test with all fields
     request2 = ImportRequest(
-        source="/path/to/dir", source_type="directory", chunk_size=500, chunk_overlap=100,
+        source="/path/to/dir",
+        source_type="directory",
+        chunk_size=500,
+        chunk_overlap=100,
     )
     assert request2.source == "/path/to/dir"
     assert request2.source_type == "directory"
@@ -91,7 +96,9 @@ def test_download_model_request_model():
 
     # Test with all fields
     request2 = DownloadModelRequest(
-        url="https://example.com/model.gguf", model_name="test-model.gguf", expected_hash="abc123",
+        url="https://example.com/model.gguf",
+        model_name="test-model.gguf",
+        expected_hash="abc123",
     )
     assert request2.url == "https://example.com/model.gguf"
     assert request2.model_name == "test-model.gguf"
