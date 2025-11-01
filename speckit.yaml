@@ -4,7 +4,7 @@ metadata:
   created: "2025-10-12"
   updated: "2025-10-29"
   status: "design_complete"
-  current_feature: "001-local-rag-mvp"
+  current_feature: "002-production-ci-cd"
   
 project:
   name: Local-RAG-Edge-LLM
@@ -39,14 +39,23 @@ constitution: .specify/memory/constitution.md
 
 # Documentation structure (SpecKit-compliant)
 docs:
-  # Core SpecKit artifacts (current feature)
-  spec: specs/001-local-rag-mvp/spec.md
-  plan: specs/001-local-rag-mvp/plan.md
-  tasks: specs/001-local-rag-mvp/tasks.md
-  research: specs/001-local-rag-mvp/research.md
-  data_model: specs/001-local-rag-mvp/data-model.md
-  quickstart: specs/001-local-rag-mvp/quickstart.md
-  contracts: specs/001-local-rag-mvp/contracts/
+  # Core SpecKit artifacts (current feature: 002-production-ci-cd)
+  spec: specs/002-production-ci-cd/spec.md
+  plan: specs/002-production-ci-cd/plan.md
+  tasks: specs/002-production-ci-cd/tasks.md
+  research: specs/002-production-ci-cd/research.md
+  data_model: specs/002-production-ci-cd/data-model.md
+  quickstart: specs/002-production-ci-cd/quickstart.md
+  contracts: specs/002-production-ci-cd/contracts/
+  
+  # Completed features (archived)
+  mvp_spec: specs/001-local-rag-mvp/spec.md
+  mvp_plan: specs/001-local-rag-mvp/plan.md
+  mvp_tasks: specs/001-local-rag-mvp/tasks.md
+  mvp_research: specs/001-local-rag-mvp/research.md
+  mvp_data_model: specs/001-local-rag-mvp/data-model.md
+  mvp_quickstart: specs/001-local-rag-mvp/quickstart.md
+  mvp_contracts: specs/001-local-rag-mvp/contracts/
   
   # Legacy documentation (archived for reference)
   legacy_problem: specs/01_problem.md
@@ -62,7 +71,7 @@ docs:
   legacy_ci_cd_automation: specs/11_ci_cd_automation.md
 
 # Task management
-tasks: specs/001-local-rag-mvp/tasks.md
+tasks: specs/002-production-ci-cd/tasks.md
 
 # Development workflow
 ci:
