@@ -15,100 +15,151 @@ This directory contains a collection of high-quality quantized GGUF models optim
 
 **Total Collection Size:** 9.4GB
 
-## Model Descriptions
+## Available Models
 
-### 1. DeepSeek-R1-Distill-Qwen-1.5B (Currently Active)
+### DeepSeek-R1-Distill-Qwen-1.5B (Currently Active)
 
-- **File:** `deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf`
-- **Size:** 1.1GB
-- **Strengths:** Excellent reasoning capabilities, multilingual support, efficient performance
-- **Best For:** Logical reasoning tasks, code analysis, mathematical problems
+**File:** `deepseek-r1-distill-qwen-1.5b.Q4_K_M.gguf` | **Size:** 1.1GB
+
+**Description:** A distilled version of DeepSeek's R1 reasoning model with excellent logical capabilities and multilingual support. Optimized for efficiency while maintaining strong performance in reasoning tasks.
+
+**Technical Specifications:**
+
 - **Context Length:** Extended context support
 - **Language Support:** English, Chinese, and other major languages
+- **Architecture:** Qwen 1.5B base with reasoning distillation
 
-### 2. Llama 3.2 3B Instruct
+**License:** MIT License - Full commercial use allowed, no restrictions
 
-- **File:** `llama-3.2-3b-instruct.Q4_K_M.gguf`
-- **Size:** 1.9GB
-- **Strengths:** General-purpose instruction following, balanced performance
-- **Best For:** General chat, question answering, content generation
+**Best Use Cases:**
+
+- Logical reasoning and problem-solving
+- Code analysis and mathematical problems  
+- Multilingual applications (English, Chinese, others)
+- Resource-constrained environments requiring reasoning
+
+### Llama 3.2 3B Instruct
+
+**File:** `llama-3.2-3b-instruct.Q4_K_M.gguf` | **Size:** 1.9GB
+
+**Description:** A versatile 3B parameter model from Meta's Llama family, excellent for general-purpose tasks with strong instruction following capabilities. Supports extended context and performs well across diverse applications.
+
+**Technical Specifications:**
+
 - **Context Length:** 128K tokens
-- **Language Support:** Primarily English with some multilingual capabilities
+- **Language Support:** English and other major languages
+- **Architecture:** Llama 3.2 3B parameters
 
-### 3. Qwen2.5 3B Instruct
+**License:** Llama 2 Custom License - Allows commercial use with some restrictions for large-scale deployment
 
-- **File:** `qwen2.5-3b-instruct.Q4_K_M.gguf`
-- **Size:** 1.8GB
-- **Strengths:** Strong instruction following, multilingual capabilities
-- **Best For:** Complex instructions, code generation, multilingual tasks
+**Best Use Cases:**
+
+- General chat and conversational AI
+- Question answering systems
+- Content generation and writing assistance
+- Applications with <700M monthly active users
+
+### Qwen2.5 3B Instruct
+
+**File:** `qwen2.5-3b-instruct.Q4_K_M.gguf` | **Size:** 1.8GB
+
+**Description:** A multilingual model from Alibaba's Qwen family with strong performance across 25+ languages. Excellent for international applications and multilingual content generation with good instruction following.
+
+**Technical Specifications:**
+
 - **Context Length:** 32K tokens
-- **Language Support:** English, Chinese, and 25+ other languages
+- **Language Support:** 25+ languages including English, Chinese, Spanish, French, etc.
+- **Architecture:** Qwen2.5 3B parameters
 
-### 4. Phi-3.5 Mini
+**License:** Apache 2.0 - Full commercial use allowed, very permissive
 
-- **File:** `phi-3.5-mini-instruct.Q4_K_M.gguf`
-- **Size:** 2.3GB
-- **Strengths:** Code generation, mathematical reasoning, memory efficiency
-- **Best For:** Programming tasks, STEM education, constrained environments
+**Best Use Cases:**
+
+- Complex instruction following
+- Code generation and programming tasks
+- Multilingual applications (25+ languages)
+- Technical content analysis and generation
+
+### Phi-3.5 Mini
+
+**File:** `phi-3.5-mini-instruct.Q4_K_M.gguf` | **Size:** 2.3GB
+
+**Description:** Microsoft's compact yet powerful model optimized for efficiency and mobile deployment. Supports extensive context and multilingual capabilities while maintaining small size. Good for resource-constrained environments.
+
+**Technical Specifications:**
+
 - **Context Length:** 128K tokens
-- **Language Support:** 20+ languages including English, Spanish, French, German
+- **Language Support:** 20+ languages including English, Spanish, French, German, etc.
+- **Architecture:** Phi-3.5 Mini 3.8B parameters
 
-### 5. Gemma 2 2B IT
+**License:** MIT License - Full commercial use allowed, no restrictions
 
-- **File:** `gemma-2-2b-it.Q4_K_M.gguf`
-- **Size:** 1.6GB
-- **Strengths:** Balanced performance, safety-focused training
-- **Best For:** General purpose applications, content creation
+**Best Use Cases:**
+
+- Programming and code generation
+- Mathematical reasoning and STEM education
+- Memory-constrained environments
+- Applications requiring strong reasoning with limited resources
+
+### Gemma 2 2B IT
+
+**File:** `gemma-2-2b-it.Q4_K_M.gguf` | **Size:** 1.6GB
+
+**Description:** Google's lightweight model from the Gemma family, offering good performance with moderate resource requirements. Suitable for general-purpose applications with balanced efficiency and capability.
+
+**Technical Specifications:**
+
 - **Context Length:** 8K tokens
-- **Language Support:** Primarily English
+- **Language Support:** Primarily English with some multilingual capabilities
+- **Architecture:** Gemma 2 2B parameters
 
-### 6. TinyLlama 1.1B Chat
+**License:** Gemma Terms of Use - Allows commercial use with Google's specific terms
 
-- **File:** `tinyllama-1.1b-chat.Q4_K_M.gguf`
-- **Size:** 638MB
-- **Strengths:** Extremely lightweight, fast inference, Llama compatibility
-- **Best For:** Resource-constrained environments, edge deployment, rapid prototyping
+**Best Use Cases:**
+
+- General purpose applications requiring safety focus
+- Content creation and creative writing
+- Applications where safety and responsible AI are priorities
+- Balanced performance across various tasks
+
+### TinyLlama 1.1B Chat
+
+**File:** `tinyllama-1.1b-chat.Q4_K_M.gguf` | **Size:** 638MB
+
+**Description:** An extremely lightweight model ideal for testing, development, and resource-constrained environments. Despite its small size, it provides reasonable performance for basic language tasks and serves as a good starting point.
+
+**Technical Specifications:**
+
 - **Context Length:** 2K tokens
 - **Language Support:** Primarily English
+- **Architecture:** TinyLlama 1.1B parameters
 
-## Licensing Information
+**License:** Apache 2.0 - Full commercial use allowed, very permissive
 
-### ✅ Commercial Use Allowed (No Restrictions)
+**Best Use Cases:**
 
-#### MIT License
+- Edge deployment and resource-constrained environments
+- Rapid prototyping and development
+- Applications requiring minimal memory footprint
+- Fast inference for simple conversational tasks
 
-- **DeepSeek-R1-Distill-Qwen-1.5B**: Full commercial use allowed, no restrictions
-- **Phi-3.5 Mini**: Full commercial use allowed, attribution required
+## Licensing Summary
 
-#### Apache 2.0 License
+### ✅ **Unrestricted Commercial Use**
 
-- **TinyLlama 1.1B Chat**: Full commercial use allowed, attribution required
+- **DeepSeek-R1** (MIT) & **Phi-3.5 Mini** (MIT) & **TinyLlama** (Apache 2.0) - No usage restrictions
 
-### ⚠️ Commercial Use with Restrictions
+### ⚠️ **Commercial Use with Conditions**
 
-#### Llama 3.2 Custom Commercial License
+- **Llama 3.2** - Restricted to <700M monthly active users, separate license required above threshold
+- **Qwen2.5** - Cannot be used to develop competing foundation models
+- **Gemma 2** - Must accept Google's usage agreement, certain prohibited uses
 
-- **Llama 3.2 3B Instruct**:
-  - ✅ Commercial use allowed for applications with <700M monthly active users
-  - ❌ Applications with ≥700M MAU require separate license from Meta
-  - ✅ Research and development use unrestricted
-  - **Note:** Check [Meta's official license](https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/LICENSE) for full terms
+### 📋 **License Compliance Notes**
 
-#### Qwen Research License
-
-- **Qwen2.5 3B Instruct**:
-  - ✅ Research use allowed
-  - ✅ Commercial use generally allowed for most applications
-  - ❌ Cannot be used to develop competing foundation models
-  - **Note:** Review [Qwen License](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct/blob/main/LICENSE) for specific terms
-
-#### Gemma Custom License
-
-- **Gemma 2 2B IT**:
-  - ✅ Commercial use allowed with attribution
-  - ✅ Modification and distribution allowed
-  - ❌ Certain prohibited uses outlined in terms
-  - **Note:** Must accept Google's usage agreement via Hugging Face
+- Always verify current license terms from official sources before production use
+- Some licenses require attribution in derivative works
+- For high-scale deployments (>700M MAU), consult legal counsel regarding Llama restrictions
 
 ## Usage Guidelines
 
