@@ -35,12 +35,16 @@ class ContentManager:
 
         Returns:
             List of document chunks with metadata
+
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+            ValueError: If file processing fails
         """
         path = Path(file_path)
 
         if not path.exists():
             logger.error(f"File not found: {file_path}")
-            return []
+            raise FileNotFoundError(f"File not found: {file_path}")
 
         try:
             content = self._read_file(path)
@@ -60,7 +64,7 @@ class ContentManager:
 
         except Exception as e:
             logger.error(f"Error processing {file_path}: {e}")
-            return []
+            raise ValueError(f"Error processing {file_path}: {e}") from e
 
     def ingest_directory(self, directory_path: str, recursive: bool = True) -> list[dict[str, Any]]:
         """Ingest all supported files from a directory.
@@ -71,13 +75,17 @@ class ContentManager:
 
         Returns:
             List of all processed documents
+
+        Raises:
+            NotADirectoryError: If the path is not a directory
+            ValueError: If directory processing fails
         """
         path = Path(directory_path)
         all_documents = []
 
         if not path.is_dir():
             logger.error(f"Not a directory: {directory_path}")
-            return []
+            raise NotADirectoryError(f"Not a directory: {directory_path}")
 
         pattern = "**/*" if recursive else "*"
         supported_extensions = {".txt", ".md", ".html", ".htm"}

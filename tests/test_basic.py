@@ -35,7 +35,7 @@ def test_cli_initialization():
 
 def test_web_interface_import():
     """Test that web interface module can be imported."""
-    from guide.web_interface import ImportRequest, QueryRequest, DownloadModelRequest, setup_routes
+    from guide.web_interface import DownloadModelRequest, ImportRequest, QueryRequest, setup_routes
 
     assert QueryRequest is not None
     assert ImportRequest is not None
@@ -51,13 +51,13 @@ def test_query_request_model():
     request = QueryRequest(query="test query")
     assert request.query == "test query"
     assert request.max_results == 5  # default value
-    assert request.include_sources == True  # default value
+    assert request.include_sources is True  # default value
 
     # Test with all fields
     request2 = QueryRequest(query="another query", max_results=10, include_sources=False)
     assert request2.query == "another query"
     assert request2.max_results == 10
-    assert request2.include_sources == False
+    assert request2.include_sources is False
 
 
 def test_import_request_model():
@@ -71,10 +71,7 @@ def test_import_request_model():
 
     # Test with all fields
     request2 = ImportRequest(
-        source="/path/to/dir", 
-        source_type="directory",
-        chunk_size=500,
-        chunk_overlap=100
+        source="/path/to/dir", source_type="directory", chunk_size=500, chunk_overlap=100,
     )
     assert request2.source == "/path/to/dir"
     assert request2.source_type == "directory"
@@ -94,9 +91,7 @@ def test_download_model_request_model():
 
     # Test with all fields
     request2 = DownloadModelRequest(
-        url="https://example.com/model.gguf",
-        model_name="test-model.gguf",
-        expected_hash="abc123"
+        url="https://example.com/model.gguf", model_name="test-model.gguf", expected_hash="abc123",
     )
     assert request2.url == "https://example.com/model.gguf"
     assert request2.model_name == "test-model.gguf"
@@ -157,11 +152,11 @@ def test_model_manager_initialization():
 
 def test_thermal_monitor_import():
     """Test that thermal monitor can be imported from main module."""
-    from guide.main import thermal_monitor, ThermalMonitor
+    from guide.main import ThermalMonitor, thermal_monitor
 
     assert ThermalMonitor is not None
     assert thermal_monitor is not None
-    assert hasattr(thermal_monitor, 'get_thermal_status')
+    assert hasattr(thermal_monitor, "get_thermal_status")
 
 
 def test_main_module_import():
@@ -169,8 +164,8 @@ def test_main_module_import():
     import guide.main
 
     assert guide.main is not None
-    assert hasattr(guide.main, 'create_app')
-    assert hasattr(guide.main, 'setup_logging')
+    assert hasattr(guide.main, "create_app")
+    assert hasattr(guide.main, "setup_logging")
 
 
 def test_config_module_import():
@@ -178,8 +173,8 @@ def test_config_module_import():
     from guide import config
 
     assert config is not None
-    assert hasattr(config, 'get')
-    assert hasattr(config, 'validate')
+    assert hasattr(config, "get")
+    assert hasattr(config, "validate")
 
 
 def test_main_create_app():
@@ -188,6 +183,6 @@ def test_main_create_app():
 
     app = create_app()
     assert app is not None
-    assert hasattr(app, 'routes')
+    assert hasattr(app, "routes")
     # Should have at least some routes defined
     assert len(app.routes) > 0

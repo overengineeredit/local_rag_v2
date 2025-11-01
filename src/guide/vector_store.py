@@ -7,10 +7,10 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import datetime, timezone
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from dataclasses import dataclass, field
 
 import chromadb
 from chromadb.config import Settings
@@ -21,22 +21,22 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Document:
     """Entity model for documents in the RAG system."""
-    
+
     source: str  # File path, URL, or source identifier
     content: str  # Full document content
     metadata: dict[str, Any] = field(default_factory=dict)
     content_hash: str = field(init=False)  # Auto-calculated
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+
     def __post_init__(self):
         """Calculate content hash after initialization."""
         self.content_hash = self._calculate_hash(self.content)
-    
+
     def _calculate_hash(self, content: str) -> str:
         """Calculate SHA-256 hash of content for deduplication."""
         normalized = content.strip()
         return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert document to dictionary for storage."""
         return {
@@ -44,31 +44,31 @@ class Document:
             "content": self.content,
             "metadata": self.metadata,
             "content_hash": self.content_hash,
-            "created_at": self.created_at.isoformat()
+            "created_at": self.created_at.isoformat(),
         }
-    
+
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Document":
+    def from_dict(cls, data: dict[str, Any]) -> Document:
         """Create document from dictionary."""
         # Parse created_at if it's a string
         created_at = data.get("created_at")
         if isinstance(created_at, str):
-            created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
         elif created_at is None:
-            created_at = datetime.now(timezone.utc)
-            
+            created_at = datetime.now(UTC)
+
         return cls(
             source=data["source"],
             content=data["content"],
             metadata=data.get("metadata", {}),
-            created_at=created_at
+            created_at=created_at,
         )
 
 
-@dataclass  
+@dataclass
 class DocumentChunk:
     """Entity model for document chunks in the vector store."""
-    
+
     chunk_id: str  # Unique identifier for the chunk
     document_source: str  # Source document identifier
     content: str  # Chunk content
@@ -77,17 +77,17 @@ class DocumentChunk:
     chunk_overlap: int  # Overlap with adjacent chunks
     metadata: dict[str, Any] = field(default_factory=dict)
     content_hash: str = field(init=False)  # Auto-calculated
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+
     def __post_init__(self):
         """Calculate content hash after initialization."""
         self.content_hash = self._calculate_hash(self.content)
-    
+
     def _calculate_hash(self, content: str) -> str:
         """Calculate SHA-256 hash of content for deduplication."""
         normalized = content.strip()
         return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert chunk to dictionary for storage."""
         return {
@@ -99,19 +99,19 @@ class DocumentChunk:
             "chunk_overlap": self.chunk_overlap,
             "metadata": self.metadata,
             "content_hash": self.content_hash,
-            "created_at": self.created_at.isoformat()
+            "created_at": self.created_at.isoformat(),
         }
-    
+
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "DocumentChunk":
+    def from_dict(cls, data: dict[str, Any]) -> DocumentChunk:
         """Create chunk from dictionary."""
         # Parse created_at if it's a string
         created_at = data.get("created_at")
         if isinstance(created_at, str):
-            created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
         elif created_at is None:
-            created_at = datetime.now(timezone.utc)
-            
+            created_at = datetime.now(UTC)
+
         return cls(
             chunk_id=data["chunk_id"],
             document_source=data["document_source"],
@@ -120,9 +120,9 @@ class DocumentChunk:
             chunk_size=data["chunk_size"],
             chunk_overlap=data["chunk_overlap"],
             metadata=data.get("metadata", {}),
-            created_at=created_at
+            created_at=created_at,
         )
-    
+
     @classmethod
     def create_chunk_id(cls, document_source: str, chunk_index: int, content_hash: str) -> str:
         """Create a unique chunk ID."""
@@ -150,10 +150,10 @@ class VectorStore:
     def _initialize_client(self) -> None:
         """Initialize ChromaDB client and collection."""
         logger.info(f"Initializing ChromaDB at {self.persist_directory}")
-        
+
         # Ensure persist directory exists
         Path(self.persist_directory).mkdir(parents=True, exist_ok=True)
-        
+
         try:
             # Configure ChromaDB with SQLite backend for embedded operation
             settings = Settings(
@@ -162,21 +162,18 @@ class VectorStore:
                 allow_reset=True,
                 is_persistent=True,
             )
-            
+
             # Initialize persistent client
-            self.client = chromadb.PersistentClient(
-                path=self.persist_directory,
-                settings=settings
-            )
-            
+            self.client = chromadb.PersistentClient(path=self.persist_directory, settings=settings)
+
             # Get or create collection with default embedding function
             self.collection = self.client.get_or_create_collection(
                 name=self.collection_name,
-                metadata={"hnsw:space": "cosine"}  # Use cosine similarity
+                metadata={"hnsw:space": "cosine"},  # Use cosine similarity
             )
-            
+
             logger.info(f"ChromaDB initialized successfully: collection '{self.collection_name}'")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize ChromaDB: {e}")
             raise RuntimeError(f"ChromaDB initialization failed: {e}") from e
@@ -192,12 +189,12 @@ class VectorStore:
         """
         if not self.collection:
             raise RuntimeError("ChromaDB not initialized")
-            
+
         chunk_ids = []
         contents = []
         metadatas = []
         ids = []
-        
+
         for doc in documents:
             # Handle both Document objects and dictionaries
             if isinstance(doc, Document):
@@ -207,7 +204,7 @@ class VectorStore:
                 document = Document(
                     source=doc.get("source", "unknown"),
                     content=doc["content"],
-                    metadata=doc.get("metadata", {})
+                    metadata=doc.get("metadata", {}),
                 )
 
             # Check for duplicates at document level
@@ -217,17 +214,17 @@ class VectorStore:
 
             # Chunk the document
             chunks = self._chunk_document(document)
-            
+
             # Prepare chunks for batch insert
             for chunk in chunks:
                 # Check for duplicate chunks
                 if self._is_chunk_duplicate(chunk.content_hash):
                     logger.info(f"Duplicate chunk detected: {chunk.content_hash[:8]}")
                     continue
-                    
+
                 chunk_ids.append(chunk.chunk_id)
                 contents.append(chunk.content)
-                
+
                 # Combine document and chunk metadata
                 combined_metadata = {
                     **document.metadata,
@@ -238,7 +235,7 @@ class VectorStore:
                     "chunk_overlap": chunk.chunk_overlap,
                     "document_hash": document.content_hash,
                     "chunk_hash": chunk.content_hash,
-                    "created_at": chunk.created_at.isoformat()
+                    "created_at": chunk.created_at.isoformat(),
                 }
                 metadatas.append(combined_metadata)
                 ids.append(chunk.chunk_id)
@@ -246,11 +243,7 @@ class VectorStore:
         # Batch add to ChromaDB
         if contents:
             try:
-                self.collection.add(
-                    documents=contents,
-                    metadatas=metadatas,
-                    ids=ids
-                )
+                self.collection.add(documents=contents, metadatas=metadatas, ids=ids)
                 logger.info(f"Added {len(contents)} document chunks to ChromaDB")
             except Exception as e:
                 logger.error(f"Failed to add documents to ChromaDB: {e}")
@@ -270,7 +263,7 @@ class VectorStore:
         """
         if not self.collection:
             raise RuntimeError("ChromaDB not initialized")
-            
+
         logger.info(f"Searching for: {query}")
 
         try:
@@ -278,22 +271,24 @@ class VectorStore:
             results = self.collection.query(
                 query_texts=[query],
                 n_results=n_results,
-                include=["documents", "metadatas", "distances"]
+                include=["documents", "metadatas", "distances"],
             )
-            
+
             # Format results
             formatted_results = []
             if results["documents"] and results["documents"][0]:
                 for i, doc in enumerate(results["documents"][0]):
-                    formatted_results.append({
-                        "content": doc,
-                        "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
-                        "distance": results["distances"][0][i] if results["distances"] else 0.0,
-                    })
-            
+                    formatted_results.append(
+                        {
+                            "content": doc,
+                            "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
+                            "distance": results["distances"][0][i] if results["distances"] else 0.0,
+                        },
+                    )
+
             logger.info(f"Found {len(formatted_results)} results")
             return formatted_results
-            
+
         except Exception as e:
             logger.error(f"Search failed: {e}")
             raise RuntimeError(f"Search operation failed: {e}") from e
@@ -310,33 +305,57 @@ class VectorStore:
         """
         if not self.collection:
             raise RuntimeError("ChromaDB not initialized")
-            
+
         logger.info(f"Deleting documents: source={source}, ids={doc_ids}")
-        
+
         try:
             deleted_count = 0
-            
+
             if doc_ids:
                 # Delete specific document IDs
                 self.collection.delete(ids=doc_ids)
                 deleted_count = len(doc_ids)
-                
+
             elif source:
                 # Find and delete all documents from source
-                results = self.collection.get(
-                    where={"source": source},
-                    include=["metadatas"]
-                )
+                results = self.collection.get(where={"source": source}, include=["metadatas"])
                 if results["ids"]:
                     self.collection.delete(ids=results["ids"])
                     deleted_count = len(results["ids"])
-                    
+
             logger.info(f"Deleted {deleted_count} documents")
             return deleted_count
-            
+
         except Exception as e:
             logger.error(f"Deletion failed: {e}")
             raise RuntimeError(f"Document deletion failed: {e}") from e
+
+    def clear_all_documents(self) -> int:
+        """Clear all documents from the vector store.
+
+        Returns:
+            Number of documents deleted
+        """
+        if not self.collection:
+            raise RuntimeError("ChromaDB not initialized")
+
+        logger.info("Clearing all documents from vector store")
+
+        try:
+            # Get all document IDs
+            results = self.collection.get(include=["metadatas"])
+            if results["ids"]:
+                self.collection.delete(ids=results["ids"])
+                deleted_count = len(results["ids"])
+                logger.info(f"Cleared {deleted_count} documents from vector store")
+                return deleted_count
+            else:
+                logger.info("No documents to clear")
+                return 0
+
+        except Exception as e:
+            logger.error(f"Clear all failed: {e}")
+            raise RuntimeError(f"Clear all documents failed: {e}") from e
 
     def _calculate_hash(self, content: str) -> str:
         """Calculate SHA-256 hash of content for deduplication."""
@@ -351,12 +370,9 @@ class VectorStore:
         """Check if document hash already exists."""
         if not self.collection:
             return False
-            
+
         try:
-            results = self.collection.get(
-                where={"document_hash": content_hash},
-                limit=1
-            )
+            results = self.collection.get(where={"document_hash": content_hash}, limit=1)
             return len(results["ids"]) > 0
         except Exception as e:
             logger.warning(f"Document duplicate check failed: {e}")
@@ -366,12 +382,9 @@ class VectorStore:
         """Check if chunk hash already exists."""
         if not self.collection:
             return False
-            
+
         try:
-            results = self.collection.get(
-                where={"chunk_hash": content_hash},
-                limit=1
-            )
+            results = self.collection.get(where={"chunk_hash": content_hash}, limit=1)
             return len(results["ids"]) > 0
         except Exception as e:
             logger.warning(f"Chunk duplicate check failed: {e}")
@@ -380,39 +393,37 @@ class VectorStore:
     def _chunk_document(self, document: Document) -> list[DocumentChunk]:
         """Split document into chunks for vector storage."""
         from . import config
-        
+
         # Get chunking configuration
         chunk_size = config.get("content.chunk_size", 1000)
         chunk_overlap = config.get("content.chunk_overlap", 200)
-        
+
         content = document.content
         chunks = []
-        
+
         # Simple text chunking - split by characters with overlap
         start = 0
         chunk_index = 0
-        
+
         while start < len(content):
             # Calculate end position
             end = min(start + chunk_size, len(content))
-            
+
             # Try to break at word boundaries
             if end < len(content):
                 # Look for space within last 50 characters
-                last_space = content.rfind(' ', max(start, end - 50), end)
+                last_space = content.rfind(" ", max(start, end - 50), end)
                 if last_space > start:
                     end = last_space
-            
+
             # Extract chunk content
             chunk_content = content[start:end].strip()
-            
+
             if chunk_content:  # Only create non-empty chunks
                 # Create chunk ID
                 chunk_hash = hashlib.sha256(chunk_content.encode()).hexdigest()
-                chunk_id = DocumentChunk.create_chunk_id(
-                    document.source, chunk_index, chunk_hash
-                )
-                
+                chunk_id = DocumentChunk.create_chunk_id(document.source, chunk_index, chunk_hash)
+
                 # Create chunk object
                 chunk = DocumentChunk(
                     chunk_id=chunk_id,
@@ -423,19 +434,19 @@ class VectorStore:
                     chunk_overlap=chunk_overlap if chunk_index > 0 else 0,
                     metadata={
                         "document_created_at": document.created_at.isoformat(),
-                        "source_type": document.metadata.get("source_type", "unknown")
-                    }
+                        "source_type": document.metadata.get("source_type", "unknown"),
+                    },
                 )
-                
+
                 chunks.append(chunk)
                 chunk_index += 1
-            
+
             # Move start position with overlap
             if end >= len(content):
                 break
-                
+
             start = max(start + 1, end - chunk_overlap)
-        
+
         logger.info(f"Split document into {len(chunks)} chunks")
         return chunks
 
@@ -448,26 +459,26 @@ class VectorStore:
                     "persist_directory": self.persist_directory,
                     "collection_name": self.collection_name,
                     "connected": False,
-                    "error": "Client or collection not initialized"
+                    "error": "Client or collection not initialized",
                 }
-                
+
             # Test basic operations
             count = self.collection.count()
-            
+
             return {
                 "status": "ok",
                 "persist_directory": self.persist_directory,
                 "collection_name": self.collection_name,
                 "connected": True,
                 "document_count": count,
-                "backend": "SQLite (embedded)"
+                "backend": "SQLite (embedded)",
             }
-            
+
         except Exception as e:
             return {
                 "status": "error",
                 "persist_directory": self.persist_directory,
                 "collection_name": self.collection_name,
                 "connected": False,
-                "error": str(e)
+                "error": str(e),
             }

@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Query:
     """Entity model for user queries in the RAG system."""
-    
+
     query_id: str  # Unique identifier for the query
     text: str  # Query text
     user_id: str | None = None  # Optional user identifier
@@ -28,10 +28,10 @@ class Query:
     context_documents: list[dict[str, Any]] = field(default_factory=list)  # Retrieved context
     response: str = ""  # Generated response
     metadata: dict[str, Any] = field(default_factory=dict)  # Additional metadata
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     processed_at: datetime | None = None  # When processing completed
     processing_time: float | None = None  # Processing time in seconds
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert query to dictionary for storage/logging."""
         return {
@@ -47,23 +47,23 @@ class Query:
             "metadata": self.metadata,
             "created_at": self.created_at.isoformat(),
             "processed_at": self.processed_at.isoformat() if self.processed_at else None,
-            "processing_time": self.processing_time
+            "processing_time": self.processing_time,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Query":
+    def from_dict(cls, data: dict[str, Any]) -> Query:
         """Create query from dictionary."""
         # Parse datetime fields
         created_at = data.get("created_at")
         if isinstance(created_at, str):
-            created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
         elif created_at is None:
-            created_at = datetime.now(timezone.utc)
-            
+            created_at = datetime.now(UTC)
+
         processed_at = data.get("processed_at")
         if isinstance(processed_at, str):
-            processed_at = datetime.fromisoformat(processed_at.replace('Z', '+00:00'))
-            
+            processed_at = datetime.fromisoformat(processed_at.replace("Z", "+00:00"))
+
         return cls(
             query_id=data["query_id"],
             text=data["text"],
@@ -77,39 +77,41 @@ class Query:
             metadata=data.get("metadata", {}),
             created_at=created_at,
             processed_at=processed_at,
-            processing_time=data.get("processing_time")
+            processing_time=data.get("processing_time"),
         )
-    
+
     def mark_processed(self, response: str, processing_time: float) -> None:
         """Mark query as processed with response and timing."""
         self.response = response
-        self.processed_at = datetime.now(timezone.utc)
+        self.processed_at = datetime.now(UTC)
         self.processing_time = processing_time
-    
+
     def add_context_document(self, content: str, metadata: dict[str, Any], distance: float) -> None:
         """Add a context document to the query."""
-        self.context_documents.append({
-            "content": content,
-            "metadata": metadata,
-            "distance": distance,
-            "added_at": datetime.now(timezone.utc).isoformat()
-        })
-    
+        self.context_documents.append(
+            {
+                "content": content,
+                "metadata": metadata,
+                "distance": distance,
+                "added_at": datetime.now(UTC).isoformat(),
+            },
+        )
+
     def get_context_text(self) -> str:
         """Get combined context text from all retrieved documents."""
         return "\n\n".join([doc["content"] for doc in self.context_documents])
-    
+
     @classmethod
     def create_query_id(cls, text: str, user_id: str | None = None) -> str:
         """Create a unique query ID."""
         import hashlib
         import uuid
-        
+
         # Use timestamp and text hash for uniqueness
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         text_hash = hashlib.sha256(text.encode()).hexdigest()[:8]
         unique_suffix = str(uuid.uuid4())[:8]
-        
+
         return f"query_{timestamp}_{text_hash}_{unique_suffix}"
 
 
@@ -130,7 +132,7 @@ class LLMInterface:
             "n_threads": kwargs.get("n_threads"),  # CPU threads (auto-detect if None)
             "n_gpu_layers": kwargs.get("n_gpu_layers", 0),  # GPU layers
             "verbose": kwargs.get("verbose", False),
-            "seed": kwargs.get("seed", -1)  # Random seed
+            "seed": kwargs.get("seed", -1),  # Random seed
         }
         self._load_model(**kwargs)
 
@@ -138,27 +140,25 @@ class LLMInterface:
         """Load the GGUF model using llama-cpp-python."""
         try:
             logger.info(f"Loading model from {self.model_path}")
-            
+
             # Import llama-cpp-python
             from llama_cpp import Llama
-            
+
             # Merge default params with provided kwargs
             model_params = {**self.default_params, **kwargs}
-            
+
             # Auto-detect CPU threads if not specified
             if model_params["n_threads"] is None:
                 import os
+
                 model_params["n_threads"] = os.cpu_count()
                 logger.info(f"Auto-detected {model_params['n_threads']} CPU threads")
-            
+
             # Load the model
-            self.model = Llama(
-                model_path=self.model_path,
-                **model_params
-            )
-            
+            self.model = Llama(model_path=self.model_path, **model_params)
+
             logger.info("Model loaded successfully")
-            
+
         except ImportError:
             logger.error("llama-cpp-python not installed. Run: pip install llama-cpp-python")
             raise RuntimeError("llama-cpp-python dependency missing")
@@ -179,30 +179,28 @@ class LLMInterface:
         """
         if not self.model:
             raise RuntimeError("Model not loaded")
-            
+
         try:
             # Build the full prompt
             full_prompt = self._build_prompt(prompt, context)
-            
+
             # Get generation parameters from config and kwargs
             from . import config
+
             generation_params = {
                 "max_tokens": kwargs.get("max_tokens") or config.get("llm.max_tokens", 512),
                 "temperature": kwargs.get("temperature") or config.get("llm.temperature", 0.7),
                 "top_p": kwargs.get("top_p", 0.9),
                 "top_k": kwargs.get("top_k", 40),
                 "repeat_penalty": kwargs.get("repeat_penalty", 1.1),
-                "stream": True  # Always stream
+                "stream": True,  # Always stream
             }
-            
+
             logger.info(f"Generating response with params: {generation_params}")
-            
+
             # Generate tokens
-            response_stream = self.model(
-                full_prompt,
-                **generation_params
-            )
-            
+            response_stream = self.model(full_prompt, **generation_params)
+
             # Yield tokens from the stream
             for token_data in response_stream:
                 if isinstance(token_data, dict) and "choices" in token_data:
@@ -214,7 +212,7 @@ class LLMInterface:
                 else:
                     # Handle different response formats
                     yield str(token_data)
-                    
+
         except Exception as e:
             logger.error(f"Generation failed: {e}")
             raise RuntimeError(f"Text generation failed: {e}") from e
@@ -247,30 +245,30 @@ class LLMInterface:
             Updated query object with response
         """
         import time
-        
+
         start_time = time.time()
-        
+
         try:
             # Get context text from query
             context = query.get_context_text()
-            
+
             # Generate response
             response = self.generate_complete(
                 prompt=query.text,
                 context=context,
                 temperature=query.temperature,
-                max_tokens=query.max_tokens
+                max_tokens=query.max_tokens,
             )
-            
+
             # Calculate processing time
             processing_time = time.time() - start_time
-            
+
             # Update query with response
             query.mark_processed(response, processing_time)
-            
+
             logger.info(f"Query processed in {processing_time:.2f}s")
             return query
-            
+
         except Exception as e:
             processing_time = time.time() - start_time
             error_response = f"Error generating response: {str(e)}"
@@ -282,28 +280,29 @@ class LLMInterface:
         """Build the final prompt with context and query."""
         if not context.strip():
             # No context available
-            return f"""You are a helpful AI assistant. Please answer the following question to the best of your ability.
+            return (
+                f"You are a helpful AI assistant. "
+                f"Please answer the following question to the best of your ability.\n\n"
+                f"Question: {query}\n\n"
+                f"Answer:"
+            )
 
-Question: {query}
-
-Answer:"""
-        
         # With context
-        return f"""You are a helpful AI assistant. Use the following context to answer the question. If the context doesn't contain relevant information, say so clearly.
-
-Context:
-{context}
-
-Question: {query}
-
-Answer:"""
+        return (
+            f"You are a helpful AI assistant. "
+            f"Use the following context to answer the question. "
+            f"If the context doesn't contain relevant information, say so clearly.\n\n"
+            f"Context:\n{context}\n\n"
+            f"Question: {query}\n\n"
+            f"Answer:"
+        )
 
     def estimate_tokens(self, text: str) -> int:
         """Estimate token count for given text.
-        
+
         Args:
             text: Text to estimate tokens for
-            
+
         Returns:
             Estimated token count
         """
@@ -313,47 +312,53 @@ Answer:"""
                 return len(tokens)
             except Exception:
                 pass
-        
+
         # Fallback estimation: roughly 4 characters per token
         return len(text) // 4
 
-    def validate_context_length(self, prompt: str, context: str, max_context_ratio: float = 0.7) -> tuple[str, bool]:
+    def validate_context_length(
+        self, prompt: str, context: str, max_context_ratio: float = 0.7,
+    ) -> tuple[str, bool]:
         """Validate and truncate context to fit within model limits.
-        
+
         Args:
             prompt: User query
             context: Retrieved context
             max_context_ratio: Maximum ratio of context tokens to total context window
-            
+
         Returns:
             Tuple of (adjusted_context, was_truncated)
         """
         from . import config
-        
+
         max_context_length = config.get("llm.context_length", 2048)
-        
+
         # Build prompt to estimate total tokens
         full_prompt = self._build_prompt(prompt, context)
         total_tokens = self.estimate_tokens(full_prompt)
-        
+
         if total_tokens <= max_context_length:
             return context, False
-        
+
         # Calculate available tokens for context
         prompt_template_tokens = self.estimate_tokens(self._build_prompt(prompt, ""))
-        available_context_tokens = int((max_context_length - prompt_template_tokens) * max_context_ratio)
-        
+        available_context_tokens = int(
+            (max_context_length - prompt_template_tokens) * max_context_ratio,
+        )
+
         if available_context_tokens <= 0:
             logger.warning("Query too long, context will be empty")
             return "", True
-        
+
         # Truncate context to fit
         target_chars = available_context_tokens * 4  # Rough estimation
         if len(context) > target_chars:
-            truncated_context = context[:target_chars].rsplit('.', 1)[0] + "..."
-            logger.warning(f"Context truncated from {len(context)} to {len(truncated_context)} characters")
+            truncated_context = context[:target_chars].rsplit(".", 1)[0] + "..."
+            logger.warning(
+                f"Context truncated from {len(context)} to {len(truncated_context)} characters",
+            )
             return truncated_context, True
-        
+
         return context, False
 
     def health_check(self) -> dict:
@@ -364,25 +369,25 @@ Answer:"""
                     "status": "error",
                     "model_path": self.model_path,
                     "loaded": False,
-                    "error": "Model not loaded"
+                    "error": "Model not loaded",
                 }
-            
+
             # Test basic functionality
             test_response = self.generate_complete("Test", max_tokens=5)
-            
+
             return {
                 "status": "ok",
                 "model_path": self.model_path,
                 "loaded": True,
                 "context_length": self.default_params["n_ctx"],
                 "threads": self.default_params["n_threads"],
-                "test_response_length": len(test_response)
+                "test_response_length": len(test_response),
             }
-            
+
         except Exception as e:
             return {
                 "status": "error",
                 "model_path": self.model_path,
                 "loaded": self.model is not None,
-                "error": str(e)
+                "error": str(e),
             }
