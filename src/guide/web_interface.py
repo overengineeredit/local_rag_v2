@@ -348,6 +348,36 @@ def setup_routes(app: FastAPI) -> None:
                 """Generate a complete mock response."""
                 return "".join(self.generate(prompt, context, **kwargs))
 
+            def generate_complete_with_sources(self, prompt, context_documents=None, **kwargs):
+                """Generate a complete mock response with source attribution."""
+                # Build mock context from documents
+                if context_documents:
+                    context_parts = []
+                    for i, doc in enumerate(context_documents, 1):
+                        content = doc.get("content", "")
+                        metadata = doc.get("metadata", {})
+                        source = metadata.get("source", "Unknown source")
+                        context_parts.append(f"[Source {i}: {source}]\n{content}")
+                    context = "\n\n".join(context_parts)
+                else:
+                    context = ""
+
+                response = self.generate_complete(prompt, context, **kwargs)
+
+                # Add source attribution to response if sources were provided
+                if context_documents:
+                    response += "\n\nSources:"
+                    for i, doc in enumerate(context_documents, 1):
+                        metadata = doc.get("metadata", {})
+                        source = metadata.get("source", "Unknown source")
+                        title = metadata.get("title", "")
+                        if title and title != source:
+                            response += f"\n{i}. {title} ({source})"
+                        else:
+                            response += f"\n{i}. {source}"
+
+                return response
+
             def health_check(self):
                 """Mock health check."""
                 return {
@@ -580,15 +610,21 @@ def setup_routes(app: FastAPI) -> None:
 
             # Search for relevant context
             search_results = vector_store.search(request.query, request.max_results)
-            context = "\n\n".join([doc["content"] for doc in search_results if doc["content"] is not None])
 
-            # Generate response (placeholder - not streaming yet)
-            response_tokens = list(llm.generate(request.query, context))
-            response = "".join(response_tokens)
+            # Generate response with source attribution if supported
+            if hasattr(llm, "generate_complete_with_sources"):
+                # Use new source attribution method
+                response = llm.generate_complete_with_sources(prompt=request.query, context_documents=search_results)
+            else:
+                # Fallback to legacy method
+                context = "\n\n".join([doc["content"] for doc in search_results if doc["content"] is not None])
+                response_tokens = list(llm.generate(request.query, context))
+                response = "".join(response_tokens)
 
             result = {"response": response}
             if request.include_sources:
-                result["sources"] = search_results
+                result["sources"] = search_results  # Return full search results with content, metadata, distance
+                result["source_count"] = len(search_results)
 
             logger.info("Query processed successfully")
             return result

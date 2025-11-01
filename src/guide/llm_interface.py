@@ -276,8 +276,14 @@ class LLMInterface:
             logger.error(f"Query processing failed after {processing_time:.2f}s: {e}")
             raise
 
-    def _build_prompt(self, query: str, context: str) -> str:
-        """Build the final prompt with context and query."""
+    def _build_prompt(self, query: str, context: str, include_sources: bool = True) -> str:
+        """Build the final prompt with context and query.
+
+        Args:
+            query: User query
+            context: Retrieved context from documents
+            include_sources: Whether to include source attribution instructions
+        """
         if not context.strip():
             # No context available
             return (
@@ -288,14 +294,149 @@ class LLMInterface:
             )
 
         # With context
-        return (
-            f"You are a helpful AI assistant. "
-            f"Use the following context to answer the question. "
-            f"If the context doesn't contain relevant information, say so clearly.\n\n"
-            f"Context:\n{context}\n\n"
-            f"Question: {query}\n\n"
-            f"Answer:"
+        base_prompt = (
+            "You are a helpful AI assistant. "
+            "Use the following context to answer the question. "
+            "If the context doesn't contain relevant information, say so clearly."
         )
+
+        if include_sources:
+            base_prompt += (
+                " When referencing information from the context, " "mention the source document when possible."
+            )
+
+        return f"{base_prompt}\n\n" f"Context:\n{context}\n\n" f"Question: {query}\n\n" f"Answer:"
+
+    def _build_context_with_sources(self, context_documents: list[dict[str, Any]]) -> str:
+        """Build context string with source attribution.
+
+        Args:
+            context_documents: List of retrieved context documents with metadata
+
+        Returns:
+            Formatted context string with source attribution
+        """
+        if not context_documents:
+            return ""
+
+        context_parts = []
+        for i, doc in enumerate(context_documents, 1):
+            content = doc.get("content", "")
+            metadata = doc.get("metadata", {})
+
+            # Extract source information
+            source = metadata.get("source", "Unknown source")
+            title = metadata.get("title", "")
+
+            # Create source attribution
+            if title and title != source:
+                source_info = f"[Source {i}: {title} ({source})]"
+            else:
+                source_info = f"[Source {i}: {source}]"
+
+            # Format content with source attribution
+            context_parts.append(f"{source_info}\n{content}")
+
+        return "\n\n".join(context_parts)
+
+    def generate_with_sources(
+        self, prompt: str, context_documents: list[dict[str, Any]] | None = None, **kwargs
+    ) -> Iterator[str]:
+        """Generate response tokens with source attribution.
+
+        Args:
+            prompt: User query
+            context_documents: List of retrieved context documents with metadata
+            **kwargs: Override generation parameters
+
+        Yields:
+            Generated tokens
+        """
+        if context_documents:
+            # Build context with source attribution
+            context = self._build_context_with_sources(context_documents)
+            full_prompt = self._build_prompt(prompt, context, include_sources=True)
+        else:
+            full_prompt = self._build_prompt(prompt, "", include_sources=False)
+
+        return self.generate(full_prompt, context="", **kwargs)
+
+    def generate_complete_with_sources(
+        self, prompt: str, context_documents: list[dict[str, Any]] | None = None, **kwargs
+    ) -> str:
+        """Generate complete response with source attribution.
+
+        Args:
+            prompt: User query
+            context_documents: List of retrieved context documents with metadata
+            **kwargs: Override generation parameters
+
+        Returns:
+            Complete generated response with source attribution
+        """
+        try:
+            tokens = list(self.generate_with_sources(prompt, context_documents, **kwargs))
+            return "".join(tokens)
+        except Exception as e:
+            logger.error(f"Complete generation with sources failed: {e}")
+            raise
+
+    def process_query_with_sources(self, query: Query) -> Query:
+        """Process a Query object with source attribution and update it with response.
+
+        Args:
+            query: Query object to process
+
+        Returns:
+            Updated query object with response and source attribution
+        """
+        import time
+
+        start_time = time.time()
+
+        try:
+            # Generate response with source attribution
+            response = self.generate_complete_with_sources(
+                prompt=query.text,
+                context_documents=query.context_documents,
+                temperature=query.temperature,
+                max_tokens=query.max_tokens,
+            )
+
+            # Calculate processing time
+            processing_time = time.time() - start_time
+
+            # Update query with response
+            query.mark_processed(response, processing_time)
+
+            # Add source attribution metadata
+            if query.context_documents and query.include_sources:
+                source_info = []
+                for i, doc in enumerate(query.context_documents, 1):
+                    metadata = doc.get("metadata", {})
+                    source = metadata.get("source", "Unknown source")
+                    title = metadata.get("title", "")
+
+                    source_entry = {
+                        "index": i,
+                        "source": source,
+                        "title": title,
+                        "distance": doc.get("distance", 0.0),
+                    }
+                    source_info.append(source_entry)
+
+                query.metadata["sources_used"] = source_info
+                query.metadata["source_count"] = len(source_info)
+
+            logger.info(f"Query with sources processed in {processing_time:.2f}s")
+            return query
+
+        except Exception as e:
+            processing_time = time.time() - start_time
+            error_response = f"Error generating response: {str(e)}"
+            query.mark_processed(error_response, processing_time)
+            logger.error(f"Query processing with sources failed after {processing_time:.2f}s: {e}")
+            raise
 
     def estimate_tokens(self, text: str) -> int:
         """Estimate token count for given text.

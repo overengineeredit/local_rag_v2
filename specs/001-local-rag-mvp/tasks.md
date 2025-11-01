@@ -215,23 +215,23 @@ This project follows a 4-milestone development strategy with concrete deliverabl
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T012 [P] [US1] Contract test for document upload endpoint in tests/integration/test_document_api.py
-- [ ] T013 [P] [US1] Contract test for query endpoint with streaming response in tests/integration/test_query_api.py
-- [ ] T014 [P] [US1] Integration test for complete RAG workflow in tests/integration/test_rag_workflow.py
+- [x] T012 [P] [US1] Contract test for document upload endpoint in tests/integration/test_document_api.py
+- [x] T013 [P] [US1] Contract test for query endpoint with streaming response in tests/integration/test_query_api.py
+- [x] T014 [P] [US1] Integration test for complete RAG workflow in tests/integration/test_rag_workflow.py
 
 ### Implementation for User Story 1
 
-- [ ] T015 [P] [US1] Create Document entity model in src/guide/vector_store.py
-- [ ] T016 [P] [US1] Create DocumentChunk entity model in src/guide/vector_store.py
-- [ ] T017 [P] [US1] Create Query entity model in src/guide/llm_interface.py
-- [ ] T018 [US1] Implement VectorStore class with ChromaDB operations in src/guide/vector_store.py (depends on T015, T016): ChromaDB client initialization with /var/lib/local-rag/chromadb persist directory, connection retry logic with exponential backoff, collection management with metadata schema validation, embedding CRUD operations with error handling
-- [ ] T019 [US1] Implement LLMInterface class with llama-cpp-python integration in src/guide/llm_interface.py (depends on T017): model loading from /var/lib/local-rag/models/ with GGUF validation, inference parameter management (temperature, top-p, context_size), token streaming with interrupt capability, memory management and model lifecycle
-- [ ] T020 [US1] Implement basic content processing and chunking in src/guide/content_manager.py
-- [ ] T021 [US1] Implement document upload API endpoint in src/guide/web_interface.py
-- [ ] T022 [US1] Implement query API endpoint with streaming response in src/guide/web_interface.py
-- [ ] T023 [US1] Create basic web UI for document upload and querying in src/guide/web_interface.py
-- [ ] T024 [US1] Add dual hash system: source_hash (URI + metadata + content) and content_hash (content only) in src/guide/content_manager.py
-- [ ] T025 [US1] Add source attribution to query responses in src/guide/llm_interface.py
+- [x] T015 [P] [US1] Create Document entity model in src/guide/vector_store.py
+- [x] T016 [P] [US1] Create DocumentChunk entity model in src/guide/vector_store.py
+- [x] T017 [P] [US1] Create Query entity model in src/guide/llm_interface.py
+- [x] T018 [US1] Implement VectorStore class with ChromaDB operations in src/guide/vector_store.py (depends on T015, T016): ChromaDB client initialization with /var/lib/local-rag/chromadb persist directory, connection retry logic with exponential backoff, collection management with metadata schema validation, embedding CRUD operations with error handling
+- [x] T019 [US1] Implement LLMInterface class with llama-cpp-python integration in src/guide/llm_interface.py (depends on T017): model loading from /var/lib/local-rag/models/ with GGUF validation, inference parameter management (temperature, top-p, context_size), token streaming with interrupt capability, memory management and model lifecycle
+- [x] T020 [US1] Implement basic content processing and chunking in src/guide/content_manager.py
+- [x] T021 [US1] Implement document upload API endpoint in src/guide/web_interface.py
+- [x] T022 [US1] Implement query API endpoint with streaming response in src/guide/web_interface.py
+- [x] T023 [US1] Create basic web UI for document upload and querying in src/guide/web_interface.py
+- [x] T024 [US1] Add dual hash system: source_hash (URI + metadata + content) and content_hash (content only) in src/guide/content_manager.py
+- [x] T025 [US1] Add source attribution to query responses in src/guide/llm_interface.py
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
