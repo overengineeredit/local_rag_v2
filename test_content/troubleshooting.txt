@@ -1,0 +1,50 @@
+Local RAG Troubleshooting Guide
+
+Common Issues and Solutions:
+
+Installation Problems:
+Q: Package installation fails with dependency errors
+A: Ensure you're using Python 3.11+ and run: pip install --upgrade pip setuptools wheel
+
+Q: ChromaDB fails to initialize 
+A: Check that the data directory is writable and has sufficient disk space
+
+Q: LLM model fails to load
+A: Verify the GGUF file is not corrupted and matches the expected hash
+   Check available RAM - models require 4-8GB depending on size
+
+Performance Issues:
+Q: Query responses are very slow
+A: This is normal for CPU inference. Check:
+   - CPU temperature (should be < 75°C)
+   - Available RAM (should have 2GB+ free)
+   - Model size (try smaller quantized models)
+
+Q: System becomes unresponsive during inference
+A: Enable thermal throttling in configuration
+   Reduce the number of CPU threads used for inference
+   Consider using a smaller model variant
+
+Content Import Issues:
+Q: Documents aren't being found during search
+A: Verify content was imported successfully:
+   - Check the import logs for errors
+   - Ensure document chunking completed
+   - Test with exact phrases from the documents
+
+Q: Duplicate content keeps appearing
+A: The dual hash system should prevent this:
+   - Check if source files have actually changed
+   - Review content normalization settings
+   - Consider clearing and re-importing if corruption occurred
+
+Network and Connectivity:
+Q: CLI commands fail with connection errors
+A: Ensure the FastAPI server is running:
+   - Check systemctl status local-rag
+   - Verify port 8080 is not blocked
+   - Test with curl http://localhost:8080/health
+
+For additional support, check the system logs:
+- journalctl -u local-rag -f (service logs)
+- tail -f /var/log/local-rag/app.log (application logs)

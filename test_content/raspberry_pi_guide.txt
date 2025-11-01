@@ -1,0 +1,25 @@
+Raspberry Pi 5 Setup Guide
+
+The Raspberry Pi 5 is a powerful single-board computer perfect for edge computing applications. Here are the key specifications:
+
+System Requirements:
+- RAM: 4GB or 8GB LPDDR4X-4267 SDRAM
+- Storage: microSD card (Class 10, 32GB minimum recommended)
+- Power: 5V/5A USB-C power supply
+- Operating Temperature: 0°C to 85°C
+- CPU: Quad-core 64-bit Arm Cortex-A76 processor running at 2.4GHz
+
+Installation Steps:
+1. Flash the Raspberry Pi OS to a microSD card using the Raspberry Pi Imager
+2. Insert the microSD card into the Pi 5
+3. Connect peripherals (keyboard, mouse, monitor)
+4. Connect the USB-C power supply
+5. The Pi will boot automatically
+
+For Local RAG deployment:
+- Ensure adequate cooling to prevent thermal throttling
+- Use a high-quality microSD card or SSD for better performance
+- Configure systemd services for automatic startup
+- Monitor CPU temperature during inference operations
+
+The Pi 5 supports both ARM64 and legacy applications, making it ideal for running local AI workloads while maintaining privacy and data sovereignty.
