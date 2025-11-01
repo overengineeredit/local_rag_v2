@@ -7,6 +7,43 @@
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+## 🔴 TDD Workflow Requirements
+
+**MANDATORY**: This project follows strict Test-Driven Development (TDD) as per Constitution Principle V.
+
+### TDD Cycle for Each Task
+
+1. **RED**: Write failing test(s) first → Commit test
+2. **GREEN**: Write minimal implementation to pass → Commit implementation  
+3. **REFACTOR**: Clean up code while keeping tests green → Commit refactor
+
+### Tools Available
+
+- `./scripts/tdd-task.sh` - Shows current task and TDD guidance
+- `./scripts/tdd-cycle.sh <task_id> <test_file> <impl_file>` - Enforces full TDD cycle
+- `./scripts/test-quick.sh` - Quick validation before commits
+
+### Task Execution Order
+
+1. **Test tasks MUST be completed before implementation tasks**
+2. Tests must FAIL initially (proving they test unimplemented functionality)
+3. Implementation tasks make tests GREEN
+4. Each commit should be atomic (single responsibility)
+
+### Example Workflow
+
+```bash
+# 1. Find next task
+./scripts/tdd-task.sh
+
+# 2. For test tasks: Write failing tests, commit
+git add tests/unit/test_module.py
+git commit -m "T015: Add failing tests for Document entity model"
+
+# 3. For implementation tasks: Use TDD cycle
+./scripts/tdd-cycle.sh T015 tests/unit/test_vector_store.py src/guide/vector_store.py
+```
+
 ## Development Milestones
 
 This project follows a 4-milestone development strategy with concrete deliverables and success criteria for each phase:

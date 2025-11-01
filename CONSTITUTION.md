@@ -13,18 +13,20 @@
 ### Technical Standards
 
 1. **Code Quality**: Maintain 80% minimum test coverage (90% preferred) with comprehensive unit, integration, and BDD tests
-2. **Performance**: Meet documented performance targets (cold start 3-5min, warm queries 1-3min on Pi5)
-3. **Documentation**: All public APIs and configuration options must be documented
-4. **Error Handling**: Provide clear, actionable error messages with recovery guidance
-5. **Resource Limits**: Implement configurable limits to prevent resource exhaustion
+2. **Test-Driven Development**: MANDATORY TDD workflow - RED (failing tests) → GREEN (minimal implementation) → REFACTOR (cleanup)
+3. **Performance**: Meet documented performance targets (cold start 3-5min, warm queries 1-3min on Pi5)
+4. **Documentation**: All public APIs and configuration options must be documented
+5. **Error Handling**: Provide clear, actionable error messages with recovery guidance
+6. **Resource Limits**: Implement configurable limits to prevent resource exhaustion
 
 ### Development Guidelines
 
-1. **Incremental Development**: Prefer small, focused changes linked to specific milestones
-2. **Testing Before Merging**: All code changes must pass CI/CD pipeline
-3. **Specification Alignment**: Changes that deviate from specs require explicit ADR documentation
-4. **User Experience**: Optimize for ease of installation and operation by non-technical users
-5. **Backwards Compatibility**: Maintain API stability within major versions
+1. **Test-First Development**: Write failing tests before any implementation code (RED phase)
+2. **Incremental Development**: Prefer small, focused changes linked to specific milestones
+3. **Testing Before Merging**: All code changes must pass CI/CD pipeline including TDD validation
+4. **Specification Alignment**: Changes that deviate from specs require explicit ADR documentation
+5. **User Experience**: Optimize for ease of installation and operation by non-technical users
+6. **Backwards Compatibility**: Maintain API stability within major versions
 
 ### Architectural Constraints
 
