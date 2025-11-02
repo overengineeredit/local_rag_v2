@@ -369,7 +369,7 @@ logging:
 
 ### Repository Structure
 
-```
+``` txt
 .github/
   workflows/
     build-packages.yml      # Main build workflow

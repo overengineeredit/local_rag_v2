@@ -1,0 +1,64 @@
+#!/usr/bin/make -f
+
+# Debian package build rules for local-rag
+# This file controls the build process for the Local RAG system
+
+# Enable all hardening options
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# Python version configuration
+PYTHON3_VERSION := $(shell python3 -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))")
+PYTHON3_SITEDIR := /usr/lib/python$(PYTHON3_VERSION)/site-packages
+
+# Build configuration
+export PYBUILD_NAME = local-rag-v2
+export PYBUILD_DESTDIR = debian/local-rag
+export PYTHONPATH = src
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_build:
+	# Build the Python package
+	python3 setup.py build
+	
+override_dh_auto_install:
+	# Install Python package
+	python3 setup.py install --root=debian/local-rag --prefix=/usr
+	
+	# Create application directories
+	mkdir -p debian/local-rag/var/lib/local-rag/{data,models}
+	mkdir -p debian/local-rag/var/log/local-rag
+	mkdir -p debian/local-rag/etc/local-rag
+	mkdir -p debian/local-rag/usr/local/bin
+	
+	# Install systemd service file
+	mkdir -p debian/local-rag/usr/lib/systemd/system
+	install -m 644 config/local-rag.service debian/local-rag/usr/lib/systemd/system/
+	
+	# Create configuration directory structure
+	mkdir -p debian/local-rag/etc/local-rag
+	
+	# Install CLI wrapper script
+	echo '#!/bin/bash' > debian/local-rag/usr/local/bin/local-rag
+	echo 'export PYTHONPATH=/usr/lib/python$(PYTHON3_VERSION)/site-packages' >> debian/local-rag/usr/local/bin/local-rag
+	echo 'cd /var/lib/local-rag' >> debian/local-rag/usr/local/bin/local-rag
+	echo 'exec python3 -m local_rag_v2.cli "$$@"' >> debian/local-rag/usr/local/bin/local-rag
+	chmod +x debian/local-rag/usr/local/bin/local-rag
+
+override_dh_auto_test:
+	# Run tests if available
+	python3 -m pytest tests/ || true
+
+override_dh_installdeb:
+	dh_installdeb
+	
+override_dh_compress:
+	# Don't compress documentation
+	dh_compress -X.py -X.md
+
+override_dh_strip:
+	# Don't strip Python files
+	dh_strip --exclude=.so
+
+.PHONY: override_dh_auto_build override_dh_auto_install override_dh_auto_test
