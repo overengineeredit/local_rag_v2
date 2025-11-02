@@ -114,6 +114,9 @@ jobs:
           # Install test dependencies for coverage validation
           python3 -m pip install pytest pytest-cov
           
+          # Install project dependencies first (without editable install)
+          python3 -m pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 chromadb==0.4.18 llama-cpp-python==0.2.67 sentence-transformers==2.2.2 rich==13.9.2 "numpy<2.0" pydantic==2.5.0 pyyaml==6.0.1 httpx==0.25.2
+          
       - name: Build source package
         run: |
           # Generate source package for dpkg-buildpackage
@@ -121,10 +124,16 @@ jobs:
           
       - name: Run test coverage validation  
         run: |
-          # Install package dependencies for testing
-          python3 -m pip install -e ".[dev]"
+          # Install remaining dev dependencies
+          python3 -m pip install pytest-bdd==7.3.0 ruff==0.6.9 pytest-asyncio==0.21.1 pytest-mock pytest-xdist mypy types-requests types-PyYAML
           
-          # Run tests with coverage
+          # Install package in editable mode
+          python3 -m pip install -e .
+          
+          # Verify installation
+          python3 -c "import guide; print('Package installed successfully')"
+          
+          # Run tests with coverage (using correct source path)
           python3 -m pytest --cov=src/guide --cov-report=term --cov-report=xml --cov-fail-under=85
           
           # Upload coverage to artifacts
