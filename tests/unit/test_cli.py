@@ -496,4 +496,4 @@ class TestMainFunction:
             guide.cli.__name__ = "__main__"
 
             # The actual test would need module reload, but we can test the function exists
-            assert callable(guide.cli.main)
+            assert callable(main)
