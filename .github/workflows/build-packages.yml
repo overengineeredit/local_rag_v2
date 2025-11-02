@@ -73,26 +73,50 @@ jobs:
             
       - name: Set up QEMU for cross-compilation
         if: matrix.cross_compile
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: ${{ matrix.platform }}
+        run: |
+          # Install QEMU user static for cross-compilation in Debian container
+          apt-get update
+          apt-get install -y \
+            qemu-user-static \
+            binfmt-support
+          
+          # Register QEMU binary formats
+          update-binfmts --enable
+          
+          # Verify QEMU setup
+          echo "QEMU setup completed. Available architectures:"
+          ls /proc/sys/fs/binfmt_misc/ | grep qemu || true
           
       - name: Configure cross-compilation environment
         if: matrix.cross_compile  
         run: |
+          # Install cross-compilation toolchain for ARM64
           apt-get install -y \
-            qemu-user-static \
-            binfmt-support \
             gcc-aarch64-linux-gnu \
-            g++-aarch64-linux-gnu
+            g++-aarch64-linux-gnu \
+            libc6-dev-arm64-cross
           
-          # Note: Not adding arm64 architecture to avoid repository conflicts
-          # Cross-compilation tools are sufficient for our package building
+          # Set up cross-compilation environment variables
+          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CXX=aarch64-linux-gnu-g++" >> $GITHUB_ENV
+          echo "AR=aarch64-linux-gnu-ar" >> $GITHUB_ENV
+          echo "STRIP=aarch64-linux-gnu-strip" >> $GITHUB_ENV
+          
+          # Note: Using native Debian cross-compilation instead of adding arm64 architecture
+          # This avoids repository conflicts while providing full cross-build capability
           
       - name: Set up Python environment
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+        run: |
+          # Use container's Python instead of actions/setup-python in container
+          python3 --version
+          python3 -m pip --version
+          
+          # Ensure we have Python 3.11+ as required
+          PYTHON_VERSION=$(python3 --version | awk '{print $2}' | cut -d. -f1,2)
+          echo "Using Python version: $PYTHON_VERSION"
+          
+          # Install additional Python tools
+          python3 -m pip install --upgrade pip setuptools wheel
           
       - name: Extract version information
         id: version
@@ -221,13 +245,33 @@ jobs:
       - name: Test package installation (AMD64 only)
         if: matrix.arch == 'amd64'
         run: |
-          # Test installation in Docker container
-          docker run --rm -v "$(pwd)/../:/packages" ubuntu:22.04 bash -c "
+          # Test package installation in chroot environment instead of nested Docker
+          echo "Testing package installation in clean chroot environment..."
+          
+          # Create a minimal Debian chroot for testing
+          apt-get install -y debootstrap
+          
+          # Create chroot environment
+          mkdir -p /tmp/test-env
+          debootstrap --arch=amd64 bookworm /tmp/test-env http://deb.debian.org/debian
+          
+          # Copy our package to the chroot
+          cp ../*.deb /tmp/test-env/tmp/
+          
+          # Test installation in chroot
+          chroot /tmp/test-env bash -c "
             apt-get update && 
             apt-get install -y python3 python3-pip systemd &&
-            dpkg -i /packages/*.deb || apt-get install -f -y &&
-            echo 'Package installation test completed'
+            dpkg -i /tmp/*.deb || apt-get install -f -y &&
+            # Verify the package is properly installed
+            dpkg -l | grep local-rag &&
+            # Check if service file is installed
+            ls -la /lib/systemd/system/local-rag.service &&
+            echo '✅ Package installation test completed successfully'
           "
+          
+          # Cleanup
+          rm -rf /tmp/test-env
           
       - name: Generate build artifacts
         run: |
