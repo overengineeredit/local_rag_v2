@@ -156,8 +156,39 @@ jobs:
           # Install test dependencies for coverage validation
           python3 -m pip install --break-system-packages pytest pytest-cov
           
-          # Install project dependencies first (without editable install)
-          python3 -m pip install --break-system-packages fastapi==0.104.1 uvicorn[standard]==0.24.0 chromadb==0.4.18 llama-cpp-python==0.2.67 sentence-transformers==2.2.2 rich==13.9.2 "numpy<2.0" pydantic==2.5.0 pyyaml==6.0.1 httpx==0.25.2
+          # Install dependencies with architecture-specific handling
+          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            echo "Installing dependencies for ARM64 cross-compilation..."
+            # For ARM64, use pre-built wheels when available and skip problematic source builds
+            python3 -m pip install --break-system-packages --only-binary=:all: \
+              fastapi==0.104.1 \
+              uvicorn[standard]==0.24.0 \
+              chromadb==0.4.18 \
+              sentence-transformers==2.2.2 \
+              rich==13.9.2 \
+              "numpy<2.0" \
+              pydantic==2.5.0 \
+              pyyaml==6.0.1 \
+              httpx==0.25.2
+            
+            # Install llama-cpp-python separately with CPU-only build for cross-compilation
+            CMAKE_ARGS="-DLLAMA_BLAS=OFF -DLLAMA_AVX=OFF -DLLAMA_AVX2=OFF -DLLAMA_FMA=OFF" \
+            python3 -m pip install --break-system-packages llama-cpp-python==0.2.67 --no-cache-dir
+          else
+            echo "Installing dependencies for AMD64 native compilation..."
+            # For AMD64, install normally
+            python3 -m pip install --break-system-packages \
+              fastapi==0.104.1 \
+              uvicorn[standard]==0.24.0 \
+              chromadb==0.4.18 \
+              llama-cpp-python==0.2.67 \
+              sentence-transformers==2.2.2 \
+              rich==13.9.2 \
+              "numpy<2.0" \
+              pydantic==2.5.0 \
+              pyyaml==6.0.1 \
+              httpx==0.25.2
+          fi
           
       - name: Build source package
         run: |
