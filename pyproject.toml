@@ -65,6 +65,7 @@ extend-select = [
 [tool.ruff.format]
 # Use the same line-length as linting
 line-length = 120
+target-version = "py311"
 
 [tool.pytest.ini_options]
 addopts = "-q"
