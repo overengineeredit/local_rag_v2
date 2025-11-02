@@ -37,7 +37,6 @@ override_dh_auto_install:
 	install -m 644 config/local-rag.service debian/local-rag/usr/lib/systemd/system/
 	
 	# Create configuration directory structure
-	mkdir -p debian/local-rag/etc/local-rag
 	
 	# Install CLI wrapper script
 	echo '#!/bin/bash' > debian/local-rag/usr/local/bin/local-rag
