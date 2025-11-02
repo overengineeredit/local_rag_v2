@@ -242,3 +242,14 @@ graph TD
 - **Security Patches**: Automated security update workflows
 - **Performance Optimization**: Continuous improvement of build efficiency
 - **Documentation Maintenance**: Keep developer guides current with infrastructure changes
+
+## Architecture Decision Records (ADRs)
+
+### ADR-005: CI/CD Build Environment - Debian Containers vs Ubuntu Runners
+
+**Date**: 2025-11-02  
+**Status**: Accepted  
+**Context**: Need reliable cross-compilation environment for ARM64 and AMD64 package building  
+**Decision**: Use Debian 12 containers instead of Ubuntu 24.04 runners  
+**Rationale**: Resolves ARM64 repository conflicts, provides native Debian toolchain compatibility  
+**Consequences**: More reliable builds, better target system compatibility, slight complexity increase

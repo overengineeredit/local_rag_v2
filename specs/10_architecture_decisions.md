@@ -171,3 +171,58 @@ Use llama-cpp-python directly embedded in the Python application.
 - Can add Ollama support as alternative backend if requested
 - Model management tools may be needed for user convenience
 - Performance comparison with Ollama can inform future decisions
+
+---
+
+## ADR-005: CI/CD Build Environment - Debian Containers vs Ubuntu Runners
+
+**Date**: 2025-11-02
+
+**Status**: Accepted
+
+**Context**:
+The CI/CD pipeline for automated APT package building requires a reliable environment that supports cross-compilation for both AMD64 and ARM64 architectures. Initial implementation used Ubuntu 24.04 (noble) runners, but encountered repository conflicts when attempting ARM64 cross-compilation setup.
+
+**Decision**:
+Use Debian 12 (bookworm) containers within GitHub Actions runners for package building instead of native Ubuntu 24.04 environments.
+
+**Rationale**:
+
+**Debian Container Advantages:**
+
+- **Repository Consistency**: Native APT repositories with proper ARM64 cross-compilation support
+- **Package Building Compatibility**: Native Debian environment matches target deployment systems
+- **Toolchain Reliability**: Complete dpkg-buildpackage ecosystem without Ubuntu-specific modifications
+- **Dependency Resolution**: Proper multi-arch dependency handling without repository conflicts
+- **Environment Isolation**: Containerized builds ensure consistent, reproducible environments
+- **Cross-Compilation Support**: Mature ARM64 toolchain integration in Debian ecosystem
+
+**Ubuntu 24.04 Disadvantages for This Use Case:**
+
+- **Repository Conflicts**: ARM64 packages not available in security.ubuntu.com repositories
+- **Cross-Compilation Issues**: `dpkg --add-architecture arm64` causes 404 errors on package updates
+- **Toolchain Complexity**: Additional configuration required for cross-compilation setup
+- **Environment Drift**: Differences between build environment and target deployment systems
+
+**Technical Implementation:**
+
+- Container configuration: `debian:12` with `--privileged` options
+- Native APT package management without sudo requirements
+- QEMU emulation within container for ARM64 builds
+- Complete Debian package building toolchain (debhelper, lintian, dpkg-dev)
+- Artifact generation and validation within isolated container environment
+
+**Consequences**:
+
+- More reliable and predictable build environment
+- Better compatibility with target Debian-based deployment systems
+- Slightly increased build complexity due to container setup
+- Improved cross-compilation success rate
+- Consistent package validation using native Debian tools
+
+**Future Considerations**:
+
+- Monitor container performance vs native runner performance
+- Consider sbuild for even more isolated package building if needed
+- Evaluate upgrade path to newer Debian versions as they become available
+- Potential optimization with multi-stage container builds for caching
