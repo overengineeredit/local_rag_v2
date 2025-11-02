@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import httpx
 
+import guide.cli
 from guide.cli import DEFAULT_BASE_URL, LocalRAGCLI, main
 
 
@@ -492,11 +493,8 @@ class TestMainFunction:
         """Test that main can be called as entry point."""
         # This tests the if __name__ == "__main__" block
         with patch("guide.cli.main"):
-            # Import and execute the module to trigger the main block
-            import guide.cli as cli_module
-
             # Simulate running as main module
-            cli_module.__name__ = "__main__"
+            guide.cli.__name__ = "__main__"
 
             # The actual test would need module reload, but we can test the function exists
-            assert callable(cli_module.main)
+            assert callable(guide.cli.main)
