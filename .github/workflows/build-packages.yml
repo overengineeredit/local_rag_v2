@@ -102,6 +102,11 @@ jobs:
           echo "AR=aarch64-linux-gnu-ar" >> $GITHUB_ENV
           echo "STRIP=aarch64-linux-gnu-strip" >> $GITHUB_ENV
           
+          # Set CMAKE_ARGS for llama-cpp-python cross-compilation
+          # Disable GGML_NATIVE and set explicit ARM architecture to prevent mcpu=native errors
+          # Solution from: https://github.com/ggml-org/llama.cpp/issues/11428
+          echo "CMAKE_ARGS=-DGGML_NATIVE=OFF -DGGML_CPU_ARM_ARCH=armv8-a -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_COMPILER=/usr/bin/aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/usr/bin/aarch64-linux-gnu-g++" >> $GITHUB_ENV
+          
           # Note: Using native Debian cross-compilation instead of adding arm64 architecture
           # This avoids repository conflicts while providing full cross-build capability
           
@@ -167,14 +172,7 @@ jobs:
           
           # Install Python dependencies
           if [ "${{ matrix.arch }}" = "arm64" ]; then
-            # For ARM64 cross-compilation, disable GGML_NATIVE and set explicit ARM architecture
-            # This prevents the "unknown value 'native+nodotprod+noi8mm+nosve' for '-mcpu'" error
-            # Solution from: https://github.com/ggml-org/llama.cpp/issues/11428
-            export CC=/usr/bin/aarch64-linux-gnu-gcc
-            export CXX=/usr/bin/aarch64-linux-gnu-g++
-            export AR=/usr/bin/aarch64-linux-gnu-ar
-            export STRIP=/usr/bin/aarch64-linux-gnu-strip
-            export CMAKE_ARGS="-DGGML_NATIVE=OFF -DGGML_CPU_ARM_ARCH=armv8-a -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_COMPILER=/usr/bin/aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/usr/bin/aarch64-linux-gnu-g++"
+            # CMAKE_ARGS is already set in cross-compilation environment
             pip3 install --break-system-packages --verbose --no-cache-dir llama-cpp-python==0.3.5
           else
             pip3 install --break-system-packages llama-cpp-python==0.3.5
