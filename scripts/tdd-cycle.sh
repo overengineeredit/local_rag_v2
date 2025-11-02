@@ -78,7 +78,7 @@ if [ -z "$VIRTUAL_ENV" ]; then
 fi
 
 # Install dependencies
-pip install -q pytest pytest-cov pytest-xdist
+pip install -q pytest pytest-cov pytest-xdist ruff
 
 print_step "2" "RED PHASE - Running tests (should FAIL)..."
 
@@ -123,7 +123,7 @@ print_step "6" "Code quality checks..."
 
 # Format and lint the implementation
 if [ -f "$IMPL_FILE" ]; then
-    black "$IMPL_FILE" "$TEST_FILE"
+    ruff format "$IMPL_FILE" "$TEST_FILE"
     
     if ! ruff check --fix "$IMPL_FILE" "$TEST_FILE" --quiet; then
         print_error "Ruff issues found that couldn't be auto-fixed."

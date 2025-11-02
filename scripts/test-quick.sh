@@ -49,17 +49,17 @@ fi
 
 # Install development dependencies if needed
 print_status "Installing development dependencies..."
-pip install -q black ruff || {
+pip install -q ruff || {
     print_error "Failed to install development dependencies"
     exit 1
 }
 
 # Quick format check
 print_status "Quick format check..."
-if ! black --check src/ tests/ 2>/dev/null; then
+if ! ruff format --check src/ tests/ 2>/dev/null; then
     print_warning "Code formatting issues found. Auto-fixing..."
-    black src/ tests/
-    print_success "Code formatted with black"
+    ruff format src/ tests/
+    print_success "Code formatted with ruff"
 else
     print_success "Code formatting is correct"
 fi

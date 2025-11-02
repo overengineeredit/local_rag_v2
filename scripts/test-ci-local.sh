@@ -143,7 +143,7 @@ setup_environment() {
     # Install development dependencies
     pip install pytest pytest-cov pytest-xdist pytest-mock pytest-asyncio
     # Install quality tools
-    pip install black ruff
+    pip install ruff
     pip install build wheel setuptools
     pip install coverage[toml] codecov
     
@@ -155,12 +155,12 @@ run_code_quality() {
     log_section "Code Quality Checks"
     
     # Code formatting check
-    log_step "Checking code formatting with black"
-    if black --check --diff src/ tests/; then
+    log_step "Checking code formatting with ruff"
+    if ruff format --check --diff src/ tests/; then
         log_success "Code formatting is correct"
     else
         log_error "Code formatting issues found"
-        echo "Run 'black src/ tests/' to fix formatting"
+        echo "Run 'ruff format src/ tests/' to fix formatting"
         return 1
     fi
     
