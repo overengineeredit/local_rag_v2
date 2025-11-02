@@ -123,7 +123,7 @@ class ModelManager:
                 magic = f.read(4)
 
                 if magic != b"GGUF":
-                    raise ModelValidationError(f"Invalid GGUF magic number: {magic}")
+                    raise ModelValidationError(f"Invalid GGUF magic number: {magic!r}")
 
                 # Read version (4 bytes, little endian)
                 version_bytes = f.read(4)

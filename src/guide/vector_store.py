@@ -143,7 +143,7 @@ class VectorStore:
         """
         self.persist_directory = persist_directory
         self.collection_name = collection_name
-        self.client = None
+        self.client: Any = None
         self.collection = None
         self._initialize_client()
 

@@ -34,10 +34,10 @@ class ThermalMonitor:
         """
         self.check_interval = check_interval
         self.temp_samples = temp_samples
-        self.temperature_history = deque(maxlen=temp_samples)
-        self.thermal_zone_path = None
+        self.temperature_history: deque[float] = deque(maxlen=temp_samples)
+        self.thermal_zone_path: Path | None = None
         self.is_monitoring = False
-        self.monitor_thread = None
+        self.monitor_thread: threading.Thread | None = None
         self.logger = logging.getLogger(f"{__name__}.ThermalMonitor")
 
         # Temperature thresholds (Celsius)
@@ -324,6 +324,7 @@ def setup_logging() -> None:
     # Console handler with either JSON or standard formatting
     console_handler = logging.StreamHandler(sys.stdout)
 
+    console_formatter: logging.Formatter
     if log_format == "json":
         console_formatter = JSONFormatter()
     else:

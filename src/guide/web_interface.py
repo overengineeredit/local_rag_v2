@@ -6,7 +6,7 @@ Handles query processing, content management, and system administration.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Union
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -263,7 +263,7 @@ def setup_routes(app: FastAPI) -> None:
     from .vector_store import VectorStore
 
     # Initialize LLM with config
-    llm = None
+    llm: Union[LLMInterface, Any] = None
     try:
         model_path = config.get(
             "llm.model_path",

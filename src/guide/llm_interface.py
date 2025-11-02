@@ -126,7 +126,7 @@ class LLMInterface:
             **kwargs: Additional llama-cpp-python parameters
         """
         self.model_path = model_path
-        self.model = None
+        self.model: Any = None
         self.default_params = {
             "n_ctx": kwargs.get("n_ctx", 2048),  # Context length
             "n_threads": kwargs.get("n_threads"),  # CPU threads (auto-detect if None)

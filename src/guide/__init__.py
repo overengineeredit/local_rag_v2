@@ -29,7 +29,7 @@ class Config:
             config_path: Path to configuration file. If None, uses default locations.
         """
         self.config_path = self._find_config_path(config_path)
-        self._config_data = {}
+        self._config_data: dict[str, Any] = {}
         self._load_config()
 
     def _find_config_path(self, config_path: str | Path | None) -> Path:
