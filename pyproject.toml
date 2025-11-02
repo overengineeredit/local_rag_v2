@@ -63,7 +63,7 @@ extend-select = [
 ]
 
 [tool.ruff.format]
-target-version = "py311"
+# Format configuration inherits target-version and line-length from [tool.ruff]
 
 [tool.pytest.ini_options]
 addopts = "-q"
