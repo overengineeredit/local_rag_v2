@@ -167,10 +167,14 @@ jobs:
           
           # Install Python dependencies
           if [ "${{ matrix.arch }}" = "arm64" ]; then
-            # For ARM64 cross-compilation, completely disable native optimizations
-            export CMAKE_ARGS="-DLLAMA_NATIVE=OFF -DLLAMA_LTO=OFF -DLLAMA_AVX=OFF -DLLAMA_AVX2=OFF -DLLAMA_FMA=OFF -DLLAMA_F16C=OFF -DCMAKE_C_FLAGS='-march=armv8-a' -DCMAKE_CXX_FLAGS='-march=armv8-a'"
-            export CFLAGS="-march=armv8-a"
-            export CXXFLAGS="-march=armv8-a"
+            # For ARM64 cross-compilation, disable GGML_NATIVE and set explicit ARM architecture
+            # This prevents the "unknown value 'native+nodotprod+noi8mm+nosve' for '-mcpu'" error
+            # Solution from: https://github.com/ggml-org/llama.cpp/issues/11428
+            export CC=/usr/bin/aarch64-linux-gnu-gcc
+            export CXX=/usr/bin/aarch64-linux-gnu-g++
+            export AR=/usr/bin/aarch64-linux-gnu-ar
+            export STRIP=/usr/bin/aarch64-linux-gnu-strip
+            export CMAKE_ARGS="-DGGML_NATIVE=OFF -DGGML_CPU_ARM_ARCH=armv8-a -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_COMPILER=/usr/bin/aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/usr/bin/aarch64-linux-gnu-g++"
             pip3 install --break-system-packages --verbose --no-cache-dir llama-cpp-python==0.3.5
           else
             pip3 install --break-system-packages llama-cpp-python==0.3.5
@@ -190,10 +194,10 @@ jobs:
           # Generate source package for dpkg-buildpackage
           dpkg-source --build .
           
-      - name: Run test coverage validation  
+      - name: Run test coverage validation
         run: |
           # Install remaining dev dependencies
-          python3 -m pip install --break-system-packages pytest-bdd==7.3.0 ruff==0.6.9 pytest-asyncio==0.21.1 pytest-mock pytest-xdist mypy types-requests types-PyYAML
+          python3 -m pip install --break-system-packages pytest-bdd==7.3.0 ruff==0.6.9 pytest-asyncio==0.21.1 pytest-mock pytest-xdist mypy types-requests types-PyYAML pytest-cov==4.0.0
           
           # Install package in editable mode
           python3 -m pip install --break-system-packages -e .
