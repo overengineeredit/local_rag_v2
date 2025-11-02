@@ -2,11 +2,13 @@
 
 **Feature**: 002-production-ci-cd  
 **Created**: 2025-11-01  
-**Status**: Planning
+**Status**: Phase 1 Implementation (Per ADR-005: Debian Container Approach)
 
 ## Overview
 
 This plan details the implementation approach for completing the production CI/CD infrastructure, focusing on automated APT package building for ARM64 and AMD64 architectures. The implementation builds upon the solid foundation established in `001-local-rag-mvp` and follows the existing TDD methodology.
+
+**Current Status**: Phase 1 tasks (T036, T037, T038, T048, T052) are implemented using Debian 12 containers per ADR-005. The workflow requires final Debian container adaptation to complete the implementation.
 
 ## Implementation Strategy
 

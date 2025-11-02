@@ -27,6 +27,9 @@ jobs:
   build:
     name: Build Package (${{ matrix.arch }})
     runs-on: ubuntu-latest
+    container:
+      image: debian:12
+      options: --privileged
     
     strategy:
       fail-fast: false
@@ -48,8 +51,11 @@ jobs:
           
       - name: Set up build environment
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
+          # Update package lists
+          apt-get update
+          
+          # Install basic build tools and Debian packaging tools
+          apt-get install -y \
             build-essential \
             debhelper \
             dh-python \
@@ -60,7 +66,10 @@ jobs:
             lintian \
             devscripts \
             dpkg-dev \
-            fakeroot
+            fakeroot \
+            curl \
+            ca-certificates \
+            git
             
       - name: Set up QEMU for cross-compilation
         if: matrix.cross_compile
@@ -71,15 +80,14 @@ jobs:
       - name: Configure cross-compilation environment
         if: matrix.cross_compile  
         run: |
-          sudo apt-get install -y \
+          apt-get install -y \
             qemu-user-static \
             binfmt-support \
             gcc-aarch64-linux-gnu \
             g++-aarch64-linux-gnu
           
-          # Configure dpkg for cross-compilation
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
+          # Note: Not adding arm64 architecture to avoid repository conflicts
+          # Cross-compilation tools are sufficient for our package building
           
       - name: Set up Python environment
         uses: actions/setup-python@v5

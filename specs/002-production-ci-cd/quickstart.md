@@ -73,6 +73,8 @@ Before starting, ensure you have:
 
 #### Quick Local Build Script
 
+**Note**: This script simulates the Debian container environment used in CI/CD. For production CI/CD, all builds run in Debian 12 containers per ADR-005.
+
 Create `scripts/build-local.sh`:
 
 ```bash
@@ -86,8 +88,8 @@ echo "Building for architecture: $ARCH"
 # Setup cross-compilation if needed
 if [ "$ARCH" = "arm64" ] && [ "$(uname -m)" = "x86_64" ]; then
     echo "Setting up QEMU for cross-compilation..."
-    sudo apt-get update
-    sudo apt-get install -y qemu-user-static binfmt-support
+    apt-get update
+    apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 fi
 
 # Build package
@@ -171,9 +173,9 @@ apt update && apt install -y ./local-rag_*.deb
 systemctl --user start local-rag
 
 # ARM64 testing (on actual Pi5)
-sudo apt install -y ./local-rag_*arm64.deb
-sudo systemctl start local-rag
-sudo systemctl status local-rag
+apt install -y ./local-rag_*arm64.deb
+systemctl start local-rag
+systemctl status local-rag
 ```
 
 ### Verify Package Quality

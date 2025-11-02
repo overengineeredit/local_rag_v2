@@ -26,7 +26,7 @@ This document captures the research and analysis conducted to inform the impleme
 
 **Best Practices Identified**:
 
-- Use `ubuntu-latest` runners for maximum compatibility
+- Use Debian 12 containers on `ubuntu-latest` runners for package building compatibility
 - Implement proper artifact retention policies (90 days for branches, permanent for releases)
 - Utilize build matrices for parallel architecture compilation
 - Implement comprehensive logging for debugging failed builds
