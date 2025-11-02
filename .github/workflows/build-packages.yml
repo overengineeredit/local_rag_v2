@@ -115,8 +115,8 @@ jobs:
           PYTHON_VERSION=$(python3 --version | awk '{print $2}' | cut -d. -f1,2)
           echo "Using Python version: $PYTHON_VERSION"
           
-          # Install additional Python tools
-          python3 -m pip install --upgrade pip setuptools wheel
+          # Install additional Python tools (using --break-system-packages for container)
+          python3 -m pip install --break-system-packages --upgrade pip setuptools wheel
           
       - name: Extract version information
         id: version
@@ -140,14 +140,14 @@ jobs:
       - name: Install build dependencies
         run: |
           # Install Python dependencies needed for building
-          python3 -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install build
+          python3 -m pip install --break-system-packages --upgrade pip setuptools wheel
+          python3 -m pip install --break-system-packages build
           
           # Install test dependencies for coverage validation
-          python3 -m pip install pytest pytest-cov
+          python3 -m pip install --break-system-packages pytest pytest-cov
           
           # Install project dependencies first (without editable install)
-          python3 -m pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 chromadb==0.4.18 llama-cpp-python==0.2.67 sentence-transformers==2.2.2 rich==13.9.2 "numpy<2.0" pydantic==2.5.0 pyyaml==6.0.1 httpx==0.25.2
+          python3 -m pip install --break-system-packages fastapi==0.104.1 uvicorn[standard]==0.24.0 chromadb==0.4.18 llama-cpp-python==0.2.67 sentence-transformers==2.2.2 rich==13.9.2 "numpy<2.0" pydantic==2.5.0 pyyaml==6.0.1 httpx==0.25.2
           
       - name: Build source package
         run: |
@@ -157,10 +157,10 @@ jobs:
       - name: Run test coverage validation  
         run: |
           # Install remaining dev dependencies
-          python3 -m pip install pytest-bdd==7.3.0 ruff==0.6.9 pytest-asyncio==0.21.1 pytest-mock pytest-xdist mypy types-requests types-PyYAML
+          python3 -m pip install --break-system-packages pytest-bdd==7.3.0 ruff==0.6.9 pytest-asyncio==0.21.1 pytest-mock pytest-xdist mypy types-requests types-PyYAML
           
           # Install package in editable mode
-          python3 -m pip install -e .
+          python3 -m pip install --break-system-packages -e .
           
           # Verify installation
           python3 -c "import guide; print('Package installed successfully')"
@@ -177,7 +177,7 @@ jobs:
       - name: Security dependency scanning
         run: |
           # Install security scanning tools
-          python3 -m pip install safety bandit
+          python3 -m pip install --break-system-packages safety bandit
           
           # Create security reports directory
           mkdir -p security-reports
