@@ -621,7 +621,7 @@ def setup_routes(app: FastAPI) -> None:
                 response_tokens = list(llm.generate(request.query, context))
                 response = "".join(response_tokens)
 
-            result = {"response": response}
+            result: dict[str, Any] = {"response": response}
             if request.include_sources:
                 result["sources"] = search_results  # Return full search results with content, metadata, distance
                 result["source_count"] = len(search_results)
@@ -665,7 +665,7 @@ def setup_routes(app: FastAPI) -> None:
                 raise VectorStoreError("Vector store not initialized")
 
             # Add to vector store
-            doc_ids = vector_store.add_documents(documents)
+            doc_ids = vector_store.add_documents(documents)  # type: ignore[arg-type]
 
             logger.info(f"Import completed: {len(doc_ids)} documents added")
 
