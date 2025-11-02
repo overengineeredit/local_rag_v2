@@ -120,14 +120,24 @@ jobs:
           
       - name: Extract version information
         id: version
+        shell: bash
         run: |
+          # Check if we're in a git repository
+          if git rev-parse --short HEAD 2>/dev/null; then
+            GIT_SHORT=$(git rev-parse --short HEAD)
+          else
+            # Fallback if git is not available or not a git repo
+            GIT_SHORT="unknown"
+          fi
+          
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
           else
-            VERSION="0.1.0+git.$(git rev-parse --short HEAD)"
+            VERSION="0.1.0+git.${GIT_SHORT}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Generated version: ${VERSION}"
           
       - name: Prepare build directory
         run: |
