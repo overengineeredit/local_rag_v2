@@ -125,7 +125,7 @@ jobs:
           python3 -m pip install -e ".[dev]"
           
           # Run tests with coverage
-          python3 -m pytest --cov=src --cov-report=term --cov-report=xml --cov-fail-under=85
+          python3 -m pytest --cov=src/guide --cov-report=term --cov-report=xml --cov-fail-under=85
           
           # Upload coverage to artifacts
           mkdir -p coverage-reports
@@ -148,8 +148,8 @@ jobs:
           
           # Run bandit security linter
           echo "🔍 Running Bandit security analysis..."
-          python3 -m bandit -r src/ -f json -o security-reports/bandit-report.json || true
-          python3 -m bandit -r src/ -ll  # Low confidence, only show issues
+          python3 -m bandit -r src/guide/ -f json -o security-reports/bandit-report.json || true
+          python3 -m bandit -r src/guide/ -ll  # Low confidence, only show issues
           
           # Check for critical vulnerabilities and fail if found
           if python3 -m safety check --short-report | grep -i "CRITICAL\|HIGH"; then

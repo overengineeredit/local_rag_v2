@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.scripts]
-local-rag = "local_rag_v2.cli:main"
+local-rag = "guide.cli:main"
 
 [project.optional-dependencies]
 dev = [

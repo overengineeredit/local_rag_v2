@@ -43,7 +43,7 @@ override_dh_auto_install:
 	echo '#!/bin/bash' > debian/local-rag/usr/local/bin/local-rag
 	echo 'export PYTHONPATH=/usr/lib/python$(PYTHON3_VERSION)/site-packages' >> debian/local-rag/usr/local/bin/local-rag
 	echo 'cd /var/lib/local-rag' >> debian/local-rag/usr/local/bin/local-rag
-	echo 'exec python3 -m local_rag_v2.cli "$$@"' >> debian/local-rag/usr/local/bin/local-rag
+	echo 'exec python3 -m guide.cli "$$@"' >> debian/local-rag/usr/local/bin/local-rag
 	chmod +x debian/local-rag/usr/local/bin/local-rag
 
 override_dh_auto_test:

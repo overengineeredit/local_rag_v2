@@ -2,7 +2,7 @@
 # This file specifies which files to install and where
 
 # Python package files
-src/* usr/lib/python3.11/site-packages/local_rag_v2/
+src/guide/* usr/lib/python3.11/site-packages/guide/
 
 # Configuration files
 config/local-rag.service usr/lib/systemd/system/
