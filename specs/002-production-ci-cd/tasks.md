@@ -34,12 +34,12 @@
 **Description**: Implement cross-compilation support for ARM64 packages using QEMU emulation on AMD64 GitHub runners.
 
 **Acceptance Criteria**:
-- [ ] QEMU configured for ARM64 emulation in GitHub Actions
+- [ ] QEMU configured for ARM64 emulation in GitHub Actions runners
 - [ ] Cross-compilation produces functionally equivalent packages to native builds
 - [ ] Build time overhead stays under 50% compared to native compilation
-- [ ] Cross-compiled packages validated on actual ARM64 hardware (Pi5)
+- [ ] Cross-compiled packages validated through emulation testing on GitHub Actions
 - [ ] Fallback mechanisms for emulation failures
-- [ ] Performance monitoring and optimization
+- [ ] Performance monitoring and optimization for emulated builds
 
 **Dependencies**: T036 (build workflow foundation)  
 **Related**: T038, T040  
@@ -54,11 +54,10 @@
 
 **Acceptance Criteria**:
 - [ ] lintian validation integrated into build workflow
-- [ ] Package installation testing on clean Ubuntu 22.04 and Debian 12 environments
+- [ ] Basic package installation testing on clean Ubuntu 22.04 and Debian 12 environments
 - [ ] Service startup verification and health checks post-installation
-- [ ] File permission and ownership validation
-- [ ] Dependency resolution testing
-- [ ] Validation failure handling and reporting
+- [ ] Integration with existing unit and integration test suites (356 tests)
+- [ ] Essential end-to-end validation using existing test_content/ directory for core functionality
 
 **Dependencies**: T036 (build workflow), T037 (cross-compilation)  
 **Related**: T039  
@@ -69,15 +68,18 @@
 **Priority**: P2 | **Type**: Implementation | **Estimate**: 1 day  
 **Status**: Not Started  
 
-**Description**: Develop local scripts that mirror the CI build environment for developer testing and debugging.
+**Description**: Develop local scripts that mirror the CI build environment for developer testing and debugging, with detailed setup requirements and environment specifications.
 
 **Acceptance Criteria**:
-- [ ] `scripts/build-local.sh` script created for local package building
-- [ ] Architecture selection support (--arch=amd64|arm64)
-- [ ] Local QEMU setup for cross-compilation testing
-- [ ] Validation pipeline simulation (lintian, installation)
-- [ ] Integration with existing TDD workflow scripts
-- [ ] Developer documentation for local build process
+- [ ] `scripts/build-local.sh` script created with Docker-based CI environment simulation (requires Docker 20.10+, 4GB free space)
+- [ ] `scripts/build-native.sh` alternative script for native development environments (requires Ubuntu 22.04+, dpkg-dev, lintian, qemu-user-static)
+- [ ] Architecture selection support (--arch=amd64|arm64) for both approaches with clear usage documentation
+- [ ] Local QEMU setup automation for cross-compilation testing with dependency validation
+- [ ] Complete validation pipeline simulation including lintian, installation tests, and coverage checks
+- [ ] Docker environment setup script that mirrors exact CI configuration for consistency
+- [ ] Native environment prerequisite checker with automatic dependency installation
+- [ ] Integration with existing TDD workflow scripts and development patterns
+- [ ] Comprehensive developer documentation comparing Docker vs native approaches with setup requirements and troubleshooting
 
 **Dependencies**: T036, T037, T038 (CI workflows established)  
 **Related**: T046  
@@ -113,6 +115,7 @@
 
 **Acceptance Criteria**:
 - [ ] GPG key configuration in GitHub secrets
+- [ ] Automated key generation for development (non-main branches) and production (main branch) environments
 - [ ] Package signing integrated into build and release workflows
 - [ ] Signature verification documentation for end users
 - [ ] Key rotation procedures documented
@@ -145,19 +148,20 @@
 
 ### Phase 3: Quality Assurance and Monitoring (P3)
 
-#### T043: Implement Comprehensive Package Testing
-**Priority**: P3 | **Type**: Testing | **Estimate**: 2 days  
+#### T043: Implement Basic Package Testing
+**Priority**: P2 | **Type**: Testing | **Estimate**: 1 day  
 **Status**: Not Started  
 
-**Description**: Create extensive testing infrastructure for package quality validation across multiple environments.
+**Description**: Leverage existing unit and integration tests, add focused end-to-end package validation using test content from the existing test_content/ directory.
 
 **Acceptance Criteria**:
-- [ ] Docker-based clean environment testing for both architectures
-- [ ] Smoke tests for service functionality post-installation
-- [ ] Performance benchmark validation (startup time, memory usage)
-- [ ] Multi-distribution testing (Ubuntu 22.04, Debian 12, Pi OS)
-- [ ] Regression testing against previous package versions
-- [ ] Automated test reporting and failure analysis
+- [ ] Integration with existing unit test suite (356 tests) for CI/CD validation
+- [ ] Integration with existing integration tests for package build verification
+- [ ] End-to-end tests using existing test_content/ files (rag_architecture.txt, raspberry_pi_guide.txt, troubleshooting.txt)
+- [ ] Package installation testing on clean Ubuntu 22.04 and Debian 12 environments
+- [ ] Service startup verification and health checks post-installation
+- [ ] Basic functionality validation: document ingestion, query processing, response generation using test content
+- [ ] Automated test execution in CI pipeline leveraging existing test infrastructure
 
 **Dependencies**: T038 (basic validation pipeline)  
 **Related**: T044, T045  
@@ -202,7 +206,100 @@
 
 ---
 
-### Phase 4: Documentation and Integration (P3)
+#### T048: Implement Test Coverage Validation and Reporting
+**Priority**: P1 | **Type**: Implementation | **Estimate**: 1 day  
+**Status**: Not Started  
+
+**Description**: Integrate test coverage validation into CI/CD pipeline to enforce 85% coverage requirement and generate comprehensive reports.
+
+**Acceptance Criteria**:
+- [ ] Coverage validation integrated into build workflow that fails builds under 85%
+- [ ] Comprehensive test coverage reports generated for unit and integration tests
+- [ ] Coverage reports uploaded as build artifacts
+- [ ] CI/CD code itself meets linting standards and has automated tests
+- [ ] Coverage trend tracking and historical analysis
+- [ ] Integration with existing test suite validation
+
+**Dependencies**: T036 (build workflow foundation)  
+**Related**: T038, T043  
+
+---
+
+#### T049: Implement Email Notifications and Security Validation
+**Priority**: P2 | **Type**: Implementation | **Estimate**: 1 day  
+**Status**: Not Started  
+
+**Description**: Create email notification system for releases and build failures, plus implement security validation for build artifacts and dependencies.
+
+**Acceptance Criteria**:
+- [ ] Email notifications configured for release announcements and build failures
+- [ ] Status badges integrated into README for build status visibility
+- [ ] Build artifact security scanning to detect sensitive information or credentials
+- [ ] Dependency vulnerability scanning with Critical and High severity threshold for build failures
+- [ ] Security validation integrated into package validation pipeline
+- [ ] Notification settings configurable per environment (dev/prod)
+- [ ] Historical notification tracking and management
+
+**Dependencies**: T040 (release workflow), T044 (monitoring)  
+**Related**: T042, T038  
+
+---
+
+#### T050: Implement Service Architecture and Constitution Validation
+**Priority**: P1 | **Type**: Implementation | **Estimate**: 1 day  
+**Status**: Not Started  
+
+**Description**: Validate that package deployment maintains single systemd service architecture with multiple processes and ensures full constitution compliance.
+
+**Acceptance Criteria**:
+- [ ] Validation that package creates single systemd service managing multiple processes
+- [ ] Verification that service can coordinate FastAPI, llama-cpp-python, and ChromaDB components
+- [ ] Testing that all components are included in single .deb package
+- [ ] Service startup and multi-process coordination validation
+- [ ] Constitution compliance verification covering all principles in CI pipeline
+- [ ] Privacy-first validation ensuring no external data transmission in build artifacts
+- [ ] Local-only operation verification for deployed packages
+
+**Dependencies**: T038 (package validation)  
+**Related**: T043, T047  
+
+#### T051: Implement Manual Build Dispatch and Enhanced CI Controls
+**Priority**: P2 | **Type**: Implementation | **Estimate**: 1 day  
+**Status**: Not Started  
+
+**Description**: Implement GitHub Actions workflow_dispatch for manual builds with architecture selection and appropriate authorization controls.
+
+**Acceptance Criteria**:
+- [ ] GitHub Actions workflow_dispatch configured with architecture selection input (amd64, arm64, both)
+- [ ] Authorization controls limiting manual dispatch to repository collaborators via GitHub UI
+- [ ] Manual build parameters for debug mode and validation options
+- [ ] Integration with existing automated build workflows
+- [ ] Basic documentation for manual build procedures
+
+**Dependencies**: T036 (build workflow foundation)  
+**Related**: T039, T045  
+
+---
+
+#### T052: Implement Build Dependencies Security Scanning
+**Priority**: P1 | **Type**: Implementation | **Estimate**: 1 day  
+**Status**: Not Started  
+
+**Description**: Implement comprehensive security scanning for build dependencies with automated vulnerability assessment to meet FR-031 requirements.
+
+**Acceptance Criteria**:
+- [ ] Dependency vulnerability scanning integrated into CI/CD pipeline using tools like GitHub Dependabot, Snyk, or equivalent
+- [ ] Automated scanning of Python packages, APT dependencies, and GitHub Actions dependencies
+- [ ] Build failure configuration for Critical and High severity vulnerabilities
+- [ ] Security advisory reports generated and stored as build artifacts
+- [ ] Automated dependency updates for security patches where possible
+- [ ] Integration with existing package validation pipeline (T038)
+- [ ] Security scanning results included in build status reporting
+
+**Dependencies**: T036 (build workflow foundation), T038 (package validation)  
+**Related**: T049, T050  
+
+---
 
 #### T046: Complete Developer Documentation
 **Priority**: P3 | **Type**: Documentation | **Estimate**: 1 day  
@@ -213,7 +310,8 @@
 **Acceptance Criteria**:
 - [ ] CI/CD architecture documentation with diagrams
 - [ ] Workflow maintenance and troubleshooting guides
-- [ ] Local development environment setup documentation
+- [ ] Local development environment setup documentation for both Docker and native approaches
+- [ ] Comparison guide: Docker vs native local builds with pros/cons and setup requirements
 - [ ] Contributing guidelines for CI/CD changes
 - [ ] Security best practices for build infrastructure
 - [ ] Future enhancement roadmap and considerations
@@ -230,12 +328,12 @@
 **Description**: Validate CI/CD integration with existing 001-local-rag-mvp functionality and TDD workflow.
 
 **Acceptance Criteria**:
-- [ ] Zero regression in existing test suite (356 tests must continue passing)
+- [ ] Zero regression in existing test suite (356 tests must continue passing in CI/CD environment)
 - [ ] TDD workflow scripts integration with new CI/CD infrastructure
-- [ ] Performance validation maintains existing benchmarks
-- [ ] Service configuration compatibility verified
-- [ ] Migration path from development to production deployment validated
-- [ ] End-to-end integration testing completed
+- [ ] Performance validation maintains existing benchmarks using existing test infrastructure
+- [ ] Service configuration compatibility verified with existing systemd setup
+- [ ] Migration path from development to production deployment validated using existing test content
+- [ ] End-to-end integration testing using test_content/ directory for realistic validation
 
 **Dependencies**: All previous tasks (complete CI/CD infrastructure)  
 **Related**: T043  
@@ -265,6 +363,9 @@ graph TD
     T037 --> T045
     T038 --> T045
     
+    T036 --> T052[T052: Security Scanning]
+    T038 --> T052
+    
     T039 --> T046[T046: Developer Docs]
     T042 --> T046
     T045 --> T046
@@ -278,18 +379,23 @@ graph TD
 ### Sprint 1 (Week 1): Foundation Building
 - **T036**: Implement GitHub Actions Package Building Workflow
 - **T037**: Configure Cross-Compilation with QEMU Emulation
+- **T048**: Implement Test Coverage Validation and Reporting
+- **T052**: Implement Build Dependencies Security Scanning
 
 ### Sprint 2 (Week 2): Quality and Local Development
 - **T038**: Implement Package Validation Pipeline  
 - **T039**: Create Local Build Simulation Scripts
+- **T050**: Implement Service Architecture Validation
 
 ### Sprint 3 (Week 3): Release Automation
 - **T040**: Implement Automated Release Workflow
 - **T041**: Configure GPG Package Signing
 - **T042**: Create Release Documentation and User Guides
+- **T049**: Implement Email Notifications and Security Validation
+- **T051**: Implement Manual Build Dispatch and Enhanced CI Controls
 
 ### Sprint 4 (Week 4): Quality Assurance and Monitoring
-- **T043**: Implement Comprehensive Package Testing
+- **T043**: Implement Basic Package Testing
 - **T044**: Setup Build Performance Monitoring
 - **T045**: Create CI/CD Troubleshooting Tools
 
