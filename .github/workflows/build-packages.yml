@@ -149,46 +149,41 @@ jobs:
           
       - name: Install build dependencies
         run: |
-          # Install Python dependencies needed for building
-          python3 -m pip install --break-system-packages --upgrade pip setuptools wheel
-          python3 -m pip install --break-system-packages build
+          apt-get update && apt-get install -y \
+            python3-dev \
+            python3-pip \
+            python3-venv \
+            build-essential \
+            devscripts \
+            debhelper \
+            dh-python \
+            fakeroot \
+            lintian \
+            git \
+            curl \
+            wget \
+            ca-certificates \
+            ${{ matrix.arch == 'arm64' && 'crossbuild-essential-arm64' || 'gcc g++' }}
           
-          # Install test dependencies for coverage validation
-          python3 -m pip install --break-system-packages pytest pytest-cov
-          
-          # Install dependencies with architecture-specific handling
-          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
-            echo "Installing dependencies for ARM64 cross-compilation..."
-            # For ARM64, use pre-built wheels when available and skip problematic source builds
-            python3 -m pip install --break-system-packages --only-binary=:all: \
-              fastapi==0.104.1 \
-              uvicorn[standard]==0.24.0 \
-              chromadb==0.4.18 \
-              sentence-transformers==2.2.2 \
-              rich==13.9.2 \
-              "numpy<2.0" \
-              pydantic==2.5.0 \
-              pyyaml==6.0.1 \
-              httpx==0.25.2
-            
-            # Install llama-cpp-python separately with CPU-only build for cross-compilation
-            CMAKE_ARGS="-DLLAMA_BLAS=OFF -DLLAMA_AVX=OFF -DLLAMA_AVX2=OFF -DLLAMA_FMA=OFF" \
-            python3 -m pip install --break-system-packages llama-cpp-python==0.2.67 --no-cache-dir
+          # Install Python dependencies
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            # For ARM64 cross-compilation, completely disable native optimizations
+            export CMAKE_ARGS="-DLLAMA_NATIVE=OFF -DLLAMA_LTO=OFF -DLLAMA_AVX=OFF -DLLAMA_AVX2=OFF -DLLAMA_FMA=OFF -DLLAMA_F16C=OFF -DCMAKE_C_FLAGS='-march=armv8-a' -DCMAKE_CXX_FLAGS='-march=armv8-a'"
+            export CFLAGS="-march=armv8-a"
+            export CXXFLAGS="-march=armv8-a"
+            pip3 install --break-system-packages --verbose --no-cache-dir llama-cpp-python==0.3.5
           else
-            echo "Installing dependencies for AMD64 native compilation..."
-            # For AMD64, install normally
-            python3 -m pip install --break-system-packages \
-              fastapi==0.104.1 \
-              uvicorn[standard]==0.24.0 \
-              chromadb==0.4.18 \
-              llama-cpp-python==0.2.67 \
-              sentence-transformers==2.2.2 \
-              rich==13.9.2 \
-              "numpy<2.0" \
-              pydantic==2.5.0 \
-              pyyaml==6.0.1 \
-              httpx==0.25.2
+            pip3 install --break-system-packages llama-cpp-python==0.3.5
           fi
+          
+          pip3 install --break-system-packages \
+            fastapi==0.104.1 \
+            pydantic==2.5.0 \
+            uvicorn==0.24.0 \
+            chromadb==0.4.18 \
+            rich==13.9.2 \
+            sentence-transformers==2.2.2 \
+            PyYAML==6.0.1
           
       - name: Build source package
         run: |
