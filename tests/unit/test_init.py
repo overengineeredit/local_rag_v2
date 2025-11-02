@@ -10,6 +10,7 @@ import yaml
 
 import guide
 
+
 class TestConfig:
     """Test Config class functionality."""
 
