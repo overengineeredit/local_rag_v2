@@ -195,10 +195,8 @@ jobs:
           # Check for critical vulnerabilities and fail if found
           if python3 -m safety check --short-report | grep -i "CRITICAL\|HIGH"; then
             echo "❌ Critical or High severity vulnerabilities found!"
-            echo "Build will continue but security review is required."
-            # For Phase 1, we'll warn but not fail the build
-            # In production, uncomment the next line to fail:
-            # exit 1
+            echo "Build failed due to security requirements per NFR-012."
+            exit 1
           else
             echo "✅ No critical vulnerabilities detected in dependencies"
           fi
@@ -240,7 +238,12 @@ jobs:
           
           # Run lintian validation
           echo "Running lintian validation..."
-          lintian "$PACKAGE_FILE" || true  # Don't fail build on lintian warnings initially
+          if ! lintian "$PACKAGE_FILE"; then
+            echo "⚠️ Lintian validation found issues. Package quality should be reviewed."
+            echo "For Phase 1, continuing with warnings. Future versions should address these."
+          else
+            echo "✅ Lintian validation passed"
+          fi
           
       - name: Test package installation (AMD64 only)
         if: matrix.arch == 'amd64'

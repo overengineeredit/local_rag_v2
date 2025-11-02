@@ -1,0 +1,13 @@
+local-rag (0.1.0) bookworm; urgency=medium
+
+  * Initial release of Local RAG system
+  * FastAPI web interface with rich CLI commands
+  * Embedded LLM with llama-cpp-python integration
+  * ChromaDB vector store for document retrieval
+  * Cross-platform support for ARM64 (Raspberry Pi 5) and AMD64
+  * Systemd service integration for production deployment
+  * Privacy-focused local processing without cloud dependencies
+  * Dual hash strategy for intelligent content management
+  * Real-time streaming responses and progress tracking
+
+ -- Peenak Inamdar <peenaki@bluequack.com>  Sat, 02 Nov 2025 12:00:00 +0000
