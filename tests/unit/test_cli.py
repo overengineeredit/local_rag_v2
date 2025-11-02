@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import httpx
 
+import guide.cli
 from guide.cli import DEFAULT_BASE_URL, LocalRAGCLI, main
 
 
