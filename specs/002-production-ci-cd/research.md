@@ -10,7 +10,7 @@ This document captures the research and analysis conducted to inform the impleme
 
 ## GitHub Actions for Multi-Architecture Package Building
 
-### Github Actions and Package Findings
+### GitHub Actions and Package Findings
 
 **Cross-Platform Build Strategies**:
 
