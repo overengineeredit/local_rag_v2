@@ -50,6 +50,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+test-results/
 
 # Translations
 *.mo
@@ -215,8 +216,9 @@ __marimo__/
 .specify/cache/
 
 # Project-specific
-# Models directory for downloaded LLM files
-models/
+# Models directory for downloaded LLM files - allow scripts and docs but ignore model files
+models/*.gguf
+models/*.bin
 *.gguf
 *.bin
 

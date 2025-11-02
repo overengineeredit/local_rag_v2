@@ -1,0 +1,554 @@
+openapi: 3.0.3
+info:
+  title: Local RAG API
+  description: Local Retrieval-Augmented Generation system API
+  version: 1.0.0
+  
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /health:
+    get:
+      summary: System health check
+      description: Returns the health status of all system components
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+  /documents:
+    get:
+      summary: List documents
+      description: Retrieve list of all documents with pagination
+      parameters:
+        - name: status
+          in: query
+          description: Filter by document status
+          required: false
+          schema:
+            type: string
+            enum: [active, deleted]
+        - name: limit
+          in: query
+          description: Maximum number of documents to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of documents to skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentList'
+
+    post:
+      summary: Upload document
+      description: Upload and process a new document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Document file to upload
+                title:
+                  type: string
+                  description: Optional document title
+              required:
+                - file
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          description: Invalid file or request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /documents/import:
+    post:
+      summary: Batch import documents
+      description: Import documents from URLs or batch upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                urls:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  description: List of URLs to import
+                folder_path:
+                  type: string
+                  description: Local folder path to import (CLI only)
+              anyOf:
+                - required: [urls]
+                - required: [folder_path]
+      responses:
+        '202':
+          description: Import started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportStatus'
+
+  /documents/check-updates:
+    post:
+      summary: Check for content updates
+      description: Check if any sources have newer content available
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source_uris:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  description: Specific sources to check (optional, defaults to all)
+      responses:
+        '200':
+          description: Update check completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateCheckResult'
+
+  /documents/update-sources:
+    post:
+      summary: Update documents from sources
+      description: Re-import content from sources that have updates available
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source_uris:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  description: Specific sources to update (optional, defaults to all outdated)
+                force_update:
+                  type: boolean
+                  default: false
+                  description: Force update even if no changes detected
+      responses:
+        '202':
+          description: Update process started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportStatus'
+
+  /documents/{document_id}:
+    get:
+      summary: Get document details
+      description: Retrieve detailed information about a specific document
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDetail'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete document
+      description: Soft delete a document (mark as deleted)
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /query:
+    post:
+      summary: Submit query
+      description: Submit a question and receive RAG-generated response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: User's question or prompt
+                max_tokens:
+                  type: integer
+                  minimum: 1
+                  maximum: 2048
+                  default: 512
+                  description: Maximum tokens in response
+                temperature:
+                  type: number
+                  minimum: 0.0
+                  maximum: 2.0
+                  default: 0.7
+                  description: LLM sampling temperature
+              required:
+                - text
+      responses:
+        '200':
+          description: Query response (streaming)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: Server-sent events with streaming tokens
+        '400':
+          description: Invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /system/reset:
+    post:
+      summary: Reset system
+      description: Clear all documents and reset the knowledge base
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirm:
+                  type: boolean
+                  description: Must be true to confirm reset
+              required:
+                - confirm
+      responses:
+        '200':
+          description: System reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "System reset completed"
+        '400':
+          description: Reset not confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        components:
+          type: object
+          properties:
+            llm:
+              $ref: '#/components/schemas/ComponentHealth'
+            vector_db:
+              $ref: '#/components/schemas/ComponentHealth'
+            api:
+              $ref: '#/components/schemas/ComponentHealth'
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - status
+        - components
+        - timestamp
+
+    ComponentHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        details:
+          type: string
+          description: Additional status information
+        last_check:
+          type: string
+          format: date-time
+      required:
+        - status
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        source_uri:
+          type: string
+          format: uri
+          description: Original file path or URL
+        source_hash:
+          type: string
+          minLength: 64
+          maxLength: 64
+          description: SHA-256 hash of source URI + metadata + content
+        content_hash:
+          type: string
+          minLength: 64
+          maxLength: 64
+          description: SHA-256 hash of normalized content only
+        source_metadata:
+          type: object
+          additionalProperties: true
+          description: Source-specific metadata (mtime, etag, etc.)
+        ingestion_timestamp:
+          type: string
+          format: date-time
+        last_updated:
+          type: string
+          format: date-time
+        last_checked:
+          type: string
+          format: date-time
+        chunk_count:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+          enum: [active, deleted, outdated]
+        update_available:
+          type: boolean
+          description: True if source has newer content available
+        additional_metadata:
+          type: object
+          additionalProperties: true
+          description: User-defined metadata
+      required:
+        - id
+        - title
+        - source_uri
+        - source_hash
+        - content_hash
+        - source_metadata
+        - ingestion_timestamp
+        - last_updated
+        - last_checked
+        - chunk_count
+        - status
+        - update_available
+
+    DocumentDetail:
+      allOf:
+        - $ref: '#/components/schemas/Document'
+        - type: object
+          properties:
+            chunks:
+              type: array
+              items:
+                $ref: '#/components/schemas/DocumentChunk'
+            metadata:
+              type: object
+              additionalProperties: true
+
+    DocumentChunk:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        start_offset:
+          type: integer
+          minimum: 0
+        end_offset:
+          type: integer
+          minimum: 0
+        chunk_index:
+          type: integer
+          minimum: 0
+      required:
+        - id
+        - content
+        - start_offset
+        - end_offset
+        - chunk_index
+
+    DocumentList:
+      type: object
+      properties:
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+        offset:
+          type: integer
+          minimum: 0
+      required:
+        - documents
+        - total
+        - limit
+        - offset
+
+    ImportStatus:
+      type: object
+      properties:
+        import_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [started, processing, completed, failed]
+        total_items:
+          type: integer
+          minimum: 0
+        processed_items:
+          type: integer
+          minimum: 0
+        failed_items:
+          type: integer
+          minimum: 0
+        errors:
+          type: array
+          items:
+            type: string
+      required:
+        - import_id
+        - status
+        - total_items
+        - processed_items
+        - failed_items
+
+    UpdateCheckResult:
+      type: object
+      properties:
+        total_checked:
+          type: integer
+          minimum: 0
+        updates_available:
+          type: integer
+          minimum: 0
+        outdated_documents:
+          type: array
+          items:
+            type: object
+            properties:
+              document_id:
+                type: string
+                format: uuid
+              source_uri:
+                type: string
+                format: uri
+              last_checked:
+                type: string
+                format: date-time
+              changes_detected:
+                type: string
+                enum: [content_changed, metadata_changed, both, none]
+              current_source_hash:
+                type: string
+              stored_source_hash:
+                type: string
+        check_timestamp:
+          type: string
+          format: date-time
+      required:
+        - total_checked
+        - updates_available
+        - outdated_documents
+        - check_timestamp
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        details:
+          type: string
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - error
+        - timestamp

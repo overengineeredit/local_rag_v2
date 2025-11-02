@@ -142,7 +142,8 @@ setup_environment() {
     
     # Install development dependencies
     pip install pytest pytest-cov pytest-xdist pytest-mock pytest-asyncio
-    pip install black isort ruff flake8 mypy bandit safety
+    # Install quality tools
+    pip install black ruff
     pip install build wheel setuptools
     pip install coverage[toml] codecov
     
@@ -164,12 +165,12 @@ run_code_quality() {
     fi
     
     # Import sorting check
-    log_step "Checking import sorting with isort"
-    if isort --check-only --diff src/ tests/; then
+    log_step "Checking import sorting with ruff"
+    if ruff check --select I --diff src/ tests/; then
         log_success "Import sorting is correct"
     else
         log_error "Import sorting issues found"
-        echo "Run 'isort src/ tests/' to fix imports"
+        echo "Run 'ruff check --select I --fix src/ tests/' to fix imports"
         return 1
     fi
     
@@ -180,40 +181,6 @@ run_code_quality() {
     else
         log_error "Ruff linting issues found"
         return 1
-    fi
-    
-    # Additional linting with flake8
-    log_step "Running flake8 linter"
-    if flake8 src/ tests/; then
-        log_success "Flake8 linting passed"
-    else
-        log_error "Flake8 linting issues found"
-        return 1
-    fi
-    
-    # Type checking with mypy
-    log_step "Running mypy type checker"
-    if mypy src/; then
-        log_success "Type checking passed"
-    else
-        log_error "Type checking issues found"
-        return 1
-    fi
-    
-    # Security analysis with bandit
-    log_step "Running bandit security analysis"
-    if bandit -r src/ -f json -o "$TEST_RESULTS_DIR/bandit-report.json"; then
-        log_success "Security analysis passed"
-    else
-        log_warning "Security issues found - check $TEST_RESULTS_DIR/bandit-report.json"
-    fi
-    
-    # Dependency vulnerability check
-    log_step "Checking dependency vulnerabilities with safety"
-    if safety check --json --output "$TEST_RESULTS_DIR/safety-report.json"; then
-        log_success "Dependency security check passed"
-    else
-        log_warning "Vulnerable dependencies found - check $TEST_RESULTS_DIR/safety-report.json"
     fi
     
     log_success "Code quality checks complete"

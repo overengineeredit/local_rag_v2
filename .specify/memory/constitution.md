@@ -1,50 +1,54 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Version: 1.0.0 → 1.0.0 (INITIAL)
+Changes: First constitution based on existing CONSTITUTION.md and project analysis
+Added: Privacy-First, Resource Efficiency, Local-Only Operation, Single Process Architecture, Testing Excellence principles
+Templates: ✅ Plan template aligned ✅ Spec template aligned ✅ Tasks template aligned
+-->
+
+# Local RAG System Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Privacy-First Architecture
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+All data processing and inference MUST happen locally without external dependencies. The system MUST NOT transmit user content, queries, or generated responses to external services. Internet connectivity is permitted only for initial model downloads and software updates.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Rationale**: Privacy is non-negotiable for knowledge management systems containing sensitive information.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. Resource Efficiency
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+The system MUST operate within Pi5 constraints (<6GB RAM, ARM64 CPU) while maintaining functionality. All components MUST be optimized for memory usage and thermal management. Resource monitoring and configurable limits are mandatory.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: Edge deployment on constrained hardware requires careful resource management.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. Local-Only Operation
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+The system MUST function completely offline after initial setup. All LLM inference, vector operations, and content processing MUST work without internet connectivity. Recovery from power loss MUST NOT require external resources.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**Rationale**: Ensures system reliability in isolated or network-constrained environments.
+
+### IV. Single Process Architecture
+
+All components (FastAPI, llama-cpp-python, ChromaDB) MUST run within a single Python process managed by systemd. No external services or containers are permitted. Inter-process communication overhead MUST be avoided.
+
+**Rationale**: Simplifies deployment, reduces resource overhead, and improves reliability on edge devices.
+
+### V. Testing Excellence
+
+Test-driven development is mandatory: tests MUST be written before implementation, achieve >85% coverage, and include unit, integration, and BDD acceptance tests. All critical paths MUST have comprehensive error handling tests.
+
+**Rationale**: High reliability requirements demand rigorous testing practices.
+
+## Deployment Standards
+
+The system MUST use Debian (.deb) packages for distribution across ARM64 (Pi5) and AMD64 architectures. Installation MUST complete in under 5 minutes on clean systems. Systemd integration is mandatory for service lifecycle management. Configuration MUST be centralized in `/etc/local-rag/config.yaml`.
+
+## Performance Requirements
+
+The system MUST achieve Pi5 cold start within 3-5 minutes for first token, warm queries within 1-3 minutes for first token. The system MUST handle 100+ documents (2K-10K words each) without performance degradation. Real-time streaming responses are mandatory for user interface responsiveness.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all conflicting practices. All code changes MUST verify compliance with these principles. Complexity additions MUST be explicitly justified against simplicity requirements. Amendments require technical impact assessment and alignment with existing specifications.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2025-10-30

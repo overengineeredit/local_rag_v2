@@ -1,0 +1,41 @@
+Local RAG System Architecture
+
+A Retrieval-Augmented Generation (RAG) system combines the power of vector search with large language model generation to provide accurate, contextual responses based on your own documents.
+
+Core Components:
+
+Vector Database (ChromaDB):
+- Stores document embeddings for similarity search
+- Uses SQLite backend for reliable persistence
+- Supports metadata filtering and complex queries
+- Provides cosine similarity matching
+
+LLM Interface (llama-cpp-python):
+- Supports GGUF model format for CPU inference
+- Implements streaming token generation
+- Configurable parameters (temperature, top-p, context length)
+- Optimized for resource-constrained environments
+
+Content Manager:
+- Processes multiple file formats (text, HTML, markdown)
+- Implements dual hash system for deduplication
+- Supports batch import with progress tracking
+- Handles content updates and change detection
+
+Web Interface (FastAPI):
+- RESTful API for all operations
+- Built-in web UI for testing
+- Health check endpoints
+- Error handling with user-friendly messages
+
+Privacy & Security:
+- All processing happens locally
+- No external API calls during inference
+- Data remains on your device
+- Configurable access controls
+
+Performance Considerations:
+- Optimized for Pi 5 hardware constraints
+- Thermal monitoring and throttling
+- Memory usage limits
+- Configurable chunk sizes for optimal retrieval

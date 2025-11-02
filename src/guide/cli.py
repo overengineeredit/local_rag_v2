@@ -25,31 +25,82 @@ class LocalRAGCLI:
         self.base_url = base_url
         self.client = httpx.Client(base_url=base_url, timeout=30.0)
 
-    def status(self) -> None:
+    def status(self, verbose: bool = False) -> None:
         """Check and display system status."""
         try:
             response = self.client.get("/health")
             response.raise_for_status()
             data = response.json()
 
-            console.print("🏥 [bold green]System Health Check[/bold green]")
-            console.print(f"Status: {data.get('status', 'unknown')}")
+            # Overall status
+            overall_status = data.get("status", "unknown")
+            status_icon = "✅" if overall_status == "healthy" else "⚠️" if overall_status == "degraded" else "❌"
+
+            console.print(f"{status_icon} [bold green]Local RAG System Status[/bold green]")
+            console.print(f"Overall Status: [bold]{overall_status.upper()}[/bold]")
+            console.print(
+                f"Service: {data.get('service', 'unknown')} v{data.get('version', 'unknown')}",
+            )
+            console.print()
 
             # Display component status
             components = data.get("components", {})
-            table = Table(title="Component Status")
-            table.add_column("Component")
-            table.add_column("Status")
-            table.add_column("Details")
+            table = Table(title="Component Health", show_header=True, header_style="bold magenta")
+            table.add_column("Component", style="cyan", min_width=12)
+            table.add_column("Status", style="green", min_width=8)
+            if verbose:
+                table.add_column("Details", style="dim", min_width=20)
 
             for name, info in components.items():
                 status = info.get("status", "unknown")
-                details = ", ".join([f"{k}: {v}" for k, v in info.items() if k != "status"])
 
-                status_color = "green" if status == "ok" else "red"
-                table.add_row(name, f"[{status_color}]{status}[/{status_color}]", details)
+                # Choose status icon and color
+                if status == "ok":
+                    status_display = "[green]✅ Healthy[/green]"
+                elif status == "warning":
+                    status_display = "[yellow]⚠️ Warning[/yellow]"
+                elif status == "error":
+                    status_display = "[red]❌ Error[/red]"
+                elif status == "not_initialized":
+                    status_display = "[dim]⏸️ Not Ready[/dim]"
+                else:
+                    status_display = f"[dim]❓ {status}[/dim]"
+
+                if verbose:
+                    # Show detailed information in verbose mode
+                    details = []
+                    for k, v in info.items():
+                        if k not in {"status"}:
+                            if isinstance(v, dict):
+                                # Flatten nested dictionaries
+                                for nested_k, nested_v in v.items():
+                                    details.append(f"{k}.{nested_k}: {nested_v}")
+                            else:
+                                details.append(f"{k}: {v}")
+
+                    details_str = "\n".join(details[:5])  # Limit to 5 details to avoid clutter
+                    if len(details) > 5:
+                        details_str += f"\n... and {len(details) - 5} more"
+
+                    table.add_row(name.title(), status_display, details_str)
+                else:
+                    # Simple status display
+                    table.add_row(name.title(), status_display)
 
             console.print(table)
+
+            # Show any critical issues
+            critical_issues = []
+            for name, info in components.items():
+                if info.get("status") == "error":
+                    error_msg = info.get("error", "Unknown error")
+                    critical_issues.append(f"{name}: {error_msg}")
+
+            if critical_issues:
+                console.print()
+                console.print("[red]🚨 Critical Issues:[/red]")
+                for issue in critical_issues:
+                    console.print(f"  • {issue}")
 
         except httpx.RequestError as e:
             console.print(f"❌ [red]Connection error: {e}[/red]")
@@ -75,7 +126,8 @@ class LocalRAGCLI:
 
         try:
             response = self.client.post(
-                "/api/import", json={"source": source, "source_type": source_type}
+                "/api/import",
+                json={"source": source, "source_type": source_type},
             )
             response.raise_for_status()
             data = response.json()
@@ -153,13 +205,22 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Status command
-    subparsers.add_parser("status", help="Check system health")
+    status_parser = subparsers.add_parser("status", help="Check system health")
+    status_parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show detailed component information",
+    )
 
     # Import command
     import_parser = subparsers.add_parser("import", help="Import content")
     import_parser.add_argument("source", help="File path, directory, or URL")
     import_parser.add_argument(
-        "--type", choices=["file", "directory", "url", "auto"], default="auto", help="Source type"
+        "--type",
+        choices=["file", "directory", "url", "auto"],
+        default="auto",
+        help="Source type",
     )
 
     # Reset command
@@ -179,7 +240,7 @@ def main() -> None:
 
     try:
         if args.command == "status":
-            cli.status()
+            cli.status(verbose=args.verbose if hasattr(args, "verbose") else False)
         elif args.command == "import":
             cli.import_content(args.source, args.type)
         elif args.command == "reset-db":
