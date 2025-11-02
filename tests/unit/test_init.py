@@ -8,6 +8,9 @@ from unittest.mock import patch
 import pytest
 import yaml
 
+import guide
+
+
 class TestConfig:
     """Test Config class functionality."""
 
