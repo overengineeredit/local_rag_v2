@@ -35,10 +35,11 @@ Before starting, ensure you have:
 
 2. **Key Components to Implement**:
 
-   - Build matrix for `[ubuntu-latest]` runner with `strategy.matrix.arch: [amd64, arm64]`
-   - QEMU setup for ARM64 cross-compilation
-   - dpkg-buildpackage execution with architecture flags
-   - Basic artifact upload
+   - Debian 12 container environment with `container: image: debian:12` and `options: --privileged`
+   - Build matrix with `strategy.matrix.arch: [amd64, arm64]` on containerized runners
+   - QEMU setup for ARM64 cross-compilation within Debian environment
+   - dpkg-buildpackage execution with native Debian toolchain and architecture flags
+   - Basic artifact upload with container-based validation
 
 3. **Validation**:
    - Packages build without errors
@@ -50,14 +51,14 @@ Before starting, ensure you have:
 1. **Implement lintian Validation**:
 
    ```bash
-   # Add to workflow
-   sudo apt-get install lintian
+   # Add to workflow (within Debian container)
+   apt-get install -y lintian
    lintian --check *.deb
    ```
 
 2. **Basic Installation Testing**:
 
-   - Container-based clean environment testing
+   - Debian container-based clean environment testing
    - Service startup verification
    - Health check validation
 

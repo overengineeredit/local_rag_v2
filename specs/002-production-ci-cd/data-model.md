@@ -27,18 +27,33 @@ on:
         type: choice
         options: ['amd64', 'arm64', 'all']
 
+```yaml
+# CI/CD workflow configuration for multi-architecture package building
+name: "Build APT Packages"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
 jobs:
   build:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:12
+      options: --privileged
     strategy:
       matrix:
         arch: [amd64, arm64]
         include:
           - arch: amd64
-            runner: ubuntu-latest
             cross_compile: false
+            platform: linux/amd64
           - arch: arm64  
-            runner: ubuntu-latest
             cross_compile: true
+            platform: linux/arm64
             
 env:
   DEBIAN_FRONTEND: noninteractive

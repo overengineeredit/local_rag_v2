@@ -117,11 +117,11 @@ graph TD
 
 ### Package Building Workflow
 
-1. **Environment Setup**: Configure build dependencies and tools
-2. **Source Preparation**: Checkout code and setup build context
-3. **Cross-Compilation**: Enable QEMU for ARM64 builds when needed
-4. **Package Building**: Execute dpkg-buildpackage with architecture flags
-5. **Validation**: Run lintian and basic installation checks
+1. **Environment Setup**: Deploy Debian 12 container with privileged access for native package building tools
+2. **Source Preparation**: Checkout code and setup build context within container environment
+3. **Cross-Compilation**: Enable QEMU for ARM64 builds with proper Debian toolchain integration
+4. **Package Building**: Execute dpkg-buildpackage with architecture flags in native Debian environment
+5. **Validation**: Run lintian and basic installation checks with Debian-native tools
 6. **Artifact Storage**: Upload packages with appropriate retention
 
 ### Quality Gates
@@ -137,10 +137,13 @@ graph TD
 ### Technical Risks
 
 **Risk**: Cross-compilation failures due to architecture-specific dependencies  
-**Mitigation**: Comprehensive dependency analysis and fallback strategies, extensive testing with multiple base images
+**Mitigation**: Use Debian 12 containers for native package building environment, comprehensive dependency analysis with APT's cross-architecture support, fallback strategies
 
 **Risk**: QEMU emulation performance degradation  
-**Mitigation**: Performance benchmarking, build time monitoring, alternative cross-compilation strategies
+**Mitigation**: Debian container optimization, performance benchmarking, build time monitoring, container caching strategies
+
+**Risk**: Container environment compatibility issues  
+**Mitigation**: Use stable Debian 12 base image, privileged container mode for full system access, extensive testing with container isolation
 
 **Risk**: Package signing key management complexity  
 **Mitigation**: Secure key storage using GitHub secrets, key rotation procedures, backup strategies

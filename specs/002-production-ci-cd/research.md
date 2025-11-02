@@ -33,23 +33,54 @@ This document captures the research and analysis conducted to inform the impleme
 
 ### Technical Implementation Options
 
-#### Option 1: QEMU Emulation (Recommended)
+#### Option 1: QEMU Emulation with Debian Containers (Recommended)
 
-**Pros**: Cost-effective, widely supported, good documentation  
-**Cons**: Performance overhead, complexity in setup  
-**Decision**: Selected for balance of cost and functionality
+**Pros**: Cost-effective, widely supported, consistent environment, native Debian toolchain  
+**Cons**: Performance overhead, container complexity  
+**Decision**: Selected for optimal balance of reliability, cost, and Debian package building compatibility
 
-#### Option 2: Native ARM64 Runners
+#### Option 2: QEMU Emulation on Ubuntu (Previous Approach)
+
+**Pros**: Cost-effective, GitHub Actions native environment  
+**Cons**: Repository compatibility issues, Ubuntu 24.04 ARM64 package conflicts  
+**Decision**: Replaced due to cross-compilation dependency resolution failures
+
+#### Option 3: Native ARM64 Runners
 
 **Pros**: Best performance, no emulation complexity  
 **Cons**: Higher cost, limited availability  
 **Decision**: Evaluated but not selected due to cost constraints
 
-#### Option 3: Multi-Stage Docker Builds
+#### Option 4: Multi-Stage Docker Builds
 
 **Pros**: Consistent environments, good caching  
 **Cons**: Additional complexity, larger artifact sizes  
 **Decision**: Considered for future enhancement
+
+### Debian Container Implementation Strategy
+
+**Container Environment Selection**:
+
+- **Base Image**: `debian:12` (Bookworm) for stability and package building compatibility
+- **Privileged Mode**: Required for QEMU emulation and package building tools
+- **Package Management**: Native APT with full cross-architecture support
+- **Toolchain**: Complete Debian package building ecosystem
+
+**Technical Advantages**:
+
+- Native Debian environment eliminates Ubuntu/Debian compatibility issues
+- Full cross-compilation toolchain with proper dependency resolution
+- Consistent environment between CI and target deployment systems
+- Better repository support for ARM64 cross-compilation packages
+- Simplified dependency management without architecture conflicts
+
+**Implementation Details**:
+
+```yaml
+container:
+  image: debian:12
+  options: --privileged
+```
 
 ## APT Package Building with dpkg-buildpackage
 
