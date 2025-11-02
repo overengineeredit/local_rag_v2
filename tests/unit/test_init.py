@@ -8,6 +8,8 @@ from unittest.mock import patch
 import pytest
 import yaml
 
+import guide
+
 
 class TestConfig:
     """Test Config class functionality."""
@@ -385,8 +387,6 @@ class TestModuleInitialization:
 
     def test_module_constants(self):
         """Test module constants are defined."""
-        import guide
-
         assert hasattr(guide, "__version__")
         assert hasattr(guide, "__author__")
         assert hasattr(guide, "__description__")
@@ -394,15 +394,11 @@ class TestModuleInitialization:
 
     def test_global_config_instance(self):
         """Test global config instance is created."""
-        import guide
-
         assert hasattr(guide, "config")
         assert isinstance(guide.config, guide.Config)
 
     def test_all_exports(self):
         """Test __all__ contains expected exports."""
-        import guide
-
         expected_exports = [
             "create_app",
             "LLMInterface",
