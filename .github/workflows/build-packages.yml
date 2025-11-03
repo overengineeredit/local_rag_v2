@@ -2,9 +2,7 @@ name: Build APT Packages
 
 on:
   push:
-    branches: [ main, 002-production-ci-cd ]  # Added for testing
-  pull_request:
-    branches: [ main ]
+    branches: [ main ]  # Only run on production main branch
   workflow_dispatch:
     inputs:
       architecture:
