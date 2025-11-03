@@ -315,6 +315,7 @@ container:
 #### pip-audit (Selected)
 
 **Pros**:
+
 - Official PyPA project with long-term support guarantee
 - Native `--skip-editable` flag for development environment compatibility
 - Reliable exit code handling (0=clean, 1=vulnerabilities found)
@@ -322,17 +323,20 @@ container:
 - Active development and regular security database updates
 
 **Cons**:
+
 - Newer tool with smaller community compared to Safety
 - Learning curve for configuration and advanced features
 
 #### Safety CLI (Evaluated)
 
 **Pros**:
+
 - Established tool with large user base
 - Simple command-line interface
 - Good integration with many CI systems
 
 **Cons**:
+
 - Inconsistent behavior in CI environments
 - Poor handling of local/editable packages
 - Less reliable exit code patterns
@@ -342,11 +346,13 @@ container:
 #### GitHub Dependabot (Complementary)
 
 **Pros**:
+
 - Native GitHub integration
 - Automatic pull requests for security updates
 - Good for ongoing maintenance
 
 **Cons**:
+
 - Limited CI/CD integration for blocking builds
 - Focused on PR creation rather than validation
 - No local package exclusion capabilities
@@ -354,12 +360,14 @@ container:
 ### Vulnerability Filtering Strategy
 
 **Research Findings**:
+
 - Most vulnerability scanners produce significant noise from non-actionable findings
 - Development tools often have DoS vulnerabilities that don't impact production deployment
 - Critical vulnerabilities (code execution, privilege escalation) should block production deployment
 - Local development packages should be excluded from security scanning
 
 **Implementation Approach**:
+
 - Focus on pattern matching for critical vulnerability types
 - Log all findings but only block builds on actionable security issues
 - Use `--skip-editable` flag to exclude local development packages
@@ -370,17 +378,20 @@ container:
 ### CI/CD Resource Usage Analysis
 
 **Problem**: Initial implementation ran all workflows on all branches, causing:
+
 - 15+ minute feedback times for simple code changes
 - Excessive GitHub Actions runner minute consumption
 - Developer context switching due to slow feedback loops
 - Unnecessary ARM64 cross-compilation on every feature branch
 
 **Solution Research**:
+
 - **Branch Strategy**: Industry best practice is branch-specific workflow configuration
 - **Development vs Production**: Different validation needs require different workflows
 - **Resource Efficiency**: Heavy operations should run only when needed
 
 **Implementation Strategy**:
+
 - **Development Workflows**: Fast validation (linting, testing, security scanning) on all branches
 - **Production Workflows**: Full package building only on main branch
 - **Manual Override**: workflow_dispatch for debugging and testing scenarios
@@ -388,11 +399,13 @@ container:
 ### Performance Benchmarks
 
 **Before Optimization**:
+
 - Feature branch feedback: 15-20 minutes
 - Resource usage: High (cross-compilation on every push)
 - Developer satisfaction: Poor due to slow feedback
 
 **After Optimization**:
+
 - Feature branch feedback: 2-4 minutes (75% improvement)
 - Resource usage: Significantly reduced
 - Developer satisfaction: Improved with fast TDD feedback loops
