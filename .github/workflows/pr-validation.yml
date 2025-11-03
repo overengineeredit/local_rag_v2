@@ -45,14 +45,14 @@ jobs:
       - name: Run security scanning
         run: |
           echo "🔍 Checking for security vulnerabilities..."
-          python3 -m pip_audit --format=json --output=pip-audit-report.json --ignore-package=local-rag-v2 || true
-          python3 -m pip_audit --desc --ignore-package=local-rag-v2
+          python3 -m pip_audit --format=json --output=pip-audit-report.json --skip-editable || true
+          python3 -m pip_audit --desc --skip-editable
           
           # Check for critical vulnerabilities and fail if found
           # Focus on the most severe vulnerabilities that could lead to code execution
           # DoS vulnerabilities are noted but not considered build-blocking for this development tool
           echo "Checking for critical vulnerability patterns..."
-          python3 -m pip_audit --desc --ignore-package=local-rag-v2 > /tmp/audit_output.txt || true
+          python3 -m pip_audit --desc --skip-editable > /tmp/audit_output.txt || true
           CRITICAL_VULNS=$(grep -E "(code.execution|remote.code|privilege.escalation|sql.injection)" /tmp/audit_output.txt -i || echo "")
           if [ -n "$CRITICAL_VULNS" ]; then
             echo "❌ Critical or High severity vulnerabilities found!"
