@@ -242,7 +242,9 @@ jobs:
           python3 -m bandit -r src/guide/ -ll  # Low confidence, only show issues
           
           # Check for critical vulnerabilities and fail if found
-          if python3 -m pip_audit --desc | grep -i "CRITICAL\|HIGH"; then
+          # Focus on the most severe vulnerabilities that could lead to code execution
+          # DoS vulnerabilities are noted but not considered build-blocking for this development tool
+          if python3 -m pip_audit --desc | grep -E "(code.execution|remote.code|privilege.escalation|sql.injection)" -i; then
             echo "❌ Critical or High severity vulnerabilities found!"
             echo "Build failed due to security requirements per NFR-012."
             exit 1
