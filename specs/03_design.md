@@ -164,6 +164,54 @@ logging:
 **Resource Limits**: Configurable limits to prevent resource exhaustion
 **Logs**: Avoid logging sensitive user queries in production mode
 
+### CI/CD Security Scanning
+
+**Security Scanner**: pip-audit (PyPA official tool)
+- Scans Python dependencies for known vulnerabilities
+- Configured with `--skip-editable` to exclude local development packages
+- Focus on critical vulnerabilities: code execution, privilege escalation, SQL injection
+- Exit code handling: 0 = no vulnerabilities, 1 = vulnerabilities found (analyzed for criticality)
+
+**Vulnerability Management**:
+- Critical vulnerabilities block builds and deployments
+- Non-critical vulnerabilities logged for review but don't block development
+- Security reports generated and stored as build artifacts
+- Regular dependency updates automated where possible
+
+## CI/CD Workflow Architecture
+
+### Branch-Specific Workflow Strategy
+
+**Development Workflows** (Feature Branches):
+- **pr-validation.yml**: Fast feedback on code quality, security, and tests
+- **ci.yml**: Comprehensive testing without heavy builds
+- Target: 2-4 minute feedback time
+- Focus: Linting, type checking, unit tests, security scanning
+
+**Production Workflows** (Main Branch):
+- **build-packages.yml**: Full package building for both AMD64 and ARM64
+- Target: 15-20 minute complete build and validation
+- Focus: Cross-compilation, package validation, artifact generation
+
+**Manual Override**:
+- workflow_dispatch available for debugging and testing
+- Architecture selection (amd64, arm64, all)
+- Force rebuild and validation options
+
+### Security Integration
+
+**Development Security**:
+
+- pip-audit vulnerability scanning on all branches
+- Critical vulnerability detection (code execution, privilege escalation)
+- Security reports as build artifacts
+
+**Production Security**:
+
+- Full dependency security validation
+- Package integrity verification
+- GPG signing preparation (future milestone)
+
 ## Testing Strategy
 
 **Unit Tests**: All core modules with mocked dependencies

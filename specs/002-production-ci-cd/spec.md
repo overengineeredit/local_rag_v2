@@ -59,7 +59,41 @@ A maintainer can create tagged releases that automatically build packages, sign 
 
 ---
 
-### User Story 4 - Local Development Integration (Priority: P3)
+### User Story 4 - Security Scanning and Vulnerability Management (Priority: P1)
+
+A developer can rely on automated security scanning that identifies critical vulnerabilities in dependencies while filtering out non-actionable findings to maintain development velocity.
+
+**Why this priority**: Security validation is essential for production deployment, but must not block development with false positives or non-critical issues.
+
+**Independent Test**: Trigger security scan with known vulnerabilities, verify critical issues block builds while non-critical issues are logged but allow progression.
+
+**Acceptance Scenarios**:
+
+1. **Given** code with critical vulnerabilities (code execution, privilege escalation), **When** CI pipeline runs, **Then** build fails with clear vulnerability reporting
+2. **Given** code with non-critical vulnerabilities (DoS, informational), **When** CI pipeline runs, **Then** build succeeds with vulnerability logging for review
+3. **Given** local development packages (editable installs), **When** security scanning runs, **Then** local packages are excluded from vulnerability assessment
+4. **Given** security scan completes, **When** reports are generated, **Then** actionable findings are clearly distinguished from noise
+
+---
+
+### User Story 5 - Optimized Development Workflow (Priority: P1)
+
+A developer working on feature branches can get fast feedback (2-4 minutes) on code quality and tests without waiting for unnecessary production builds.
+
+**Why this priority**: Fast development feedback is critical for productive TDD workflow and prevents context switching delays.
+
+**Independent Test**: Push feature branch changes, verify validation completes quickly without triggering heavy package builds, while main branch still gets full production validation.
+
+**Acceptance Scenarios**:
+
+1. **Given** changes pushed to feature branch, **When** PR validation runs, **Then** linting, testing, and security scanning complete within 4 minutes
+2. **Given** changes pushed to main branch, **When** production workflow runs, **Then** full package building and cross-compilation execute as expected
+3. **Given** developer needs to test package building, **When** manual workflow dispatch is used, **Then** full builds can be triggered on demand with architecture selection
+4. **Given** CI resource usage, **When** workflows execute, **Then** development workflows consume minimal resources while production workflows use resources efficiently
+
+---
+
+### User Story 6 - Local Development Integration (Priority: P3)
 
 A developer can simulate the full CI/CD pipeline locally, including package building and validation, before pushing to remote repositories.
 
@@ -125,7 +159,11 @@ A developer can simulate the full CI/CD pipeline locally, including package buil
 - **FR-028**: System MUST generate comprehensive test coverage reports in CI/CD pipeline
 - **FR-029**: System MUST validate CI/CD code meets linting standards and has automated tests
 - **FR-030**: System MUST validate build artifacts and packages do not contain sensitive information or credentials
-- **FR-031**: System MUST implement security scanning for build dependencies with automated vulnerability assessment
+- **FR-031**: System MUST implement security scanning for build dependencies with automated vulnerability assessment using pip-audit
+- **FR-032**: System MUST filter security vulnerabilities by criticality, blocking builds only for code execution, privilege escalation, and SQL injection vulnerabilities
+- **FR-033**: System MUST exclude local/editable packages from security scanning using --skip-editable flag
+- **FR-034**: System MUST implement branch-specific workflow strategy: lightweight validation for development branches, full builds for production
+- **FR-035**: System MUST provide development workflow feedback within 4 minutes for code quality, security, and testing
 
 ### Non-Functional Requirements
 

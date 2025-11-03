@@ -226,3 +226,194 @@ Use Debian 12 (bookworm) containers within GitHub Actions runners for package bu
 - Consider sbuild for even more isolated package building if needed
 - Evaluate upgrade path to newer Debian versions as they become available
 - Potential optimization with multi-stage container builds for caching
+
+---
+
+## ADR-006: Security Scanner Tool Selection - pip-audit vs Safety CLI
+
+**Date**: 2025-11-02  
+**Status**: Accepted  
+**Decision Makers**: Development Team  
+**Related Tasks**: T052 - Build Dependencies Security Scanning
+
+### Context
+
+The CI/CD pipeline requires automated security scanning of Python dependencies to identify vulnerabilities. Two primary tools were evaluated: Safety CLI and pip-audit.
+
+**Original Implementation**: Safety CLI was initially considered but proved unreliable in CI environments.
+
+**Requirements**:
+
+- Detect security vulnerabilities in Python dependencies
+- Integrate with GitHub Actions CI/CD pipeline
+- Handle local/editable package installations gracefully
+- Focus on critical vulnerabilities that pose actual deployment risks
+- Provide reliable exit codes and error handling
+
+### Decision
+
+**Selected**: pip-audit  
+**Replaced**: Safety CLI
+
+### Rationale
+
+**pip-audit Advantages**:
+1. **Official PyPA Project**: Maintained by the Python Packaging Authority, ensuring long-term support and community trust
+2. **Better CI Integration**: Designed specifically for CI/CD environments with proper exit code handling
+3. **Editable Package Support**: Native `--skip-editable` flag to exclude local development packages
+4. **Flexible Vulnerability Filtering**: Can focus on critical vulnerabilities while logging others
+5. **Active Development**: Regular updates and security improvements
+6. **Comprehensive Documentation**: Well-documented flags and usage patterns
+
+**Safety CLI Limitations**:
+1. Inconsistent behavior in CI environments
+2. Poor handling of local/editable packages
+3. Less reliable exit code patterns
+4. Limited filtering capabilities for vulnerability severity
+
+### Implementation Details
+
+**Configuration**:
+```bash
+python3 -m pip_audit --skip-editable --format=json --output=pip-audit-report.json
+```
+
+**Critical Vulnerability Filtering**:
+- Focus on vulnerabilities enabling code execution, privilege escalation, or SQL injection
+- Log but don't block on denial-of-service vulnerabilities for development tools
+- Pattern matching: `(code.execution|remote.code|privilege.escalation|sql.injection)`
+
+**Error Handling**:
+- Exit code 0: No vulnerabilities found
+- Exit code 1: Vulnerabilities found (analyze for criticality)
+- Proper error capture and analysis before failing builds
+
+### Consequences
+
+**Positive**:
+- More reliable security scanning in CI/CD pipeline
+- Better handling of development environment complexities
+- Official PyPA support reduces maintenance burden
+- Focused on actionable security findings
+
+**Negative**:
+- Learning curve for new tool syntax and flags
+- Need to update documentation and training materials
+
+**Mitigation**:
+- Comprehensive documentation of new configuration
+- Clear error messages and troubleshooting guides
+- Integration with existing monitoring and alerting
+
+### Monitoring and Review
+
+- **Success Metrics**: Build stability, false positive reduction, critical vulnerability detection accuracy
+- **Review Date**: 2025-12-01 (after 30 days of production use)
+- **Rollback Plan**: Safety CLI configuration preserved in git history if immediate rollback needed
+
+---
+
+## ADR-007: Branch-Specific Workflow Configuration Strategy
+
+**Date**: 2025-11-02  
+**Status**: Accepted  
+**Decision Makers**: Development Team  
+**Related Tasks**: T053 - Branch-Specific Workflow Configuration
+
+### Context
+
+GitHub Actions workflows were initially configured to run all automation (including heavy package building) on every branch and pull request. This caused:
+
+1. **Resource Waste**: ARM64 cross-compilation and package building on every feature branch
+2. **Slow Development Cycles**: Developers waiting for unnecessary heavy builds to complete
+3. **CI Runner Constraints**: GitHub Actions runner minutes consumed unnecessarily
+4. **Feedback Delays**: Important validation (linting, tests) delayed by heavy builds
+
+**Analysis of Workflow Requirements**:
+- **Development Branches**: Need fast feedback on code quality, security, and tests
+- **Production (main) Branch**: Need full package building for releases
+- **Pull Requests**: Need validation but not full production artifacts
+
+### Decision
+
+**Implement Branch-Specific Workflow Strategy**:
+
+1. **Production Workflows** (`build-packages.yml`): Run only on `main` branch
+2. **Development Workflows** (`pr-validation.yml`, `ci.yml`): Run on all branches
+3. **Manual Override**: Maintain `workflow_dispatch` for debugging and testing
+
+### Rationale
+
+**Branch Strategy Benefits**:
+- **Faster Development**: Feature branches get feedback in 2-4 minutes instead of 15+ minutes
+- **Resource Efficiency**: Expensive cross-compilation only runs when needed
+- **Clear Separation**: Development validation vs production artifact creation
+- **Cost Management**: Reduced GitHub Actions runner minutes consumption
+
+**Configuration Details**:
+
+**build-packages.yml**:
+```yaml
+on:
+  push:
+    branches: [ main ]  # Production only
+  workflow_dispatch:    # Manual testing
+```
+
+**pr-validation.yml**:
+```yaml
+on:
+  pull_request:
+    branches: [main]    # All PRs to main
+```
+
+**ci.yml**:
+```yaml
+on:
+  push:                 # All pushes
+  pull_request:         # All PRs
+```
+
+### Implementation Details
+
+**Development Workflow Focus**:
+- Code quality (ruff linting and formatting)
+- Type checking (mypy)
+- Security scanning (pip-audit)
+- Unit tests with coverage
+- Integration tests
+
+**Production Workflow Focus**:
+- Full package building (AMD64 + ARM64)
+- Cross-compilation with QEMU
+- Package validation (lintian)
+- Installation testing
+- Artifact uploads
+
+**Manual Override Capabilities**:
+- Architecture selection (amd64, arm64, all)
+- Force rebuild options
+- Validation parameter control
+
+### Consequences
+
+**Positive**:
+- 75% reduction in CI/CD feedback time for development
+- Significant reduction in GitHub Actions costs
+- Clear workflow purpose and responsibility
+- Maintained full validation coverage where needed
+
+**Negative**:
+- Potential for production-specific issues not caught in development
+- Manual workflow dispatch needed for cross-compilation testing during development
+
+**Mitigation**:
+- Comprehensive local build scripts for development testing
+- Regular manual workflow runs during major changes
+- Clear documentation of when to run full builds
+
+### Monitoring and Review
+
+- **Success Metrics**: Developer feedback time, build success rates, cost reduction
+- **Review Date**: 2025-11-15 (after 2 weeks of production use)
+- **Monitoring**: Track build times, failure rates, and developer satisfaction
