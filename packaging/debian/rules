@@ -19,28 +19,24 @@ export PYTHONPATH = src
 	dh $@ --with python3 --buildsystem=pybuild
 
 override_dh_auto_build:
-	# Build the Python package
-	python3 setup.py build
+	# Let pybuild handle the build process automatically
+	dh_auto_build
 override_dh_auto_install:
-	# Install Python package
-	python3 setup.py install --root=debian/local-rag --prefix=/usr
+	# Let pybuild handle Python package installation automatically
+	dh_auto_install
 	# Create application directories
 	mkdir -p debian/local-rag/var/lib/local-rag/{data,models}
 	mkdir -p debian/local-rag/var/log/local-rag
 	mkdir -p debian/local-rag/etc/local-rag
 	mkdir -p debian/local-rag/usr/local/bin
-	
+
 	# Install systemd service file
 	mkdir -p debian/local-rag/usr/lib/systemd/system
 	install -m 644 config/local-rag.service debian/local-rag/usr/lib/systemd/system/
-	
+
 	# Create configuration directory structure
 	# Install CLI wrapper script
-	echo '#!/bin/bash' > debian/local-rag/usr/local/bin/local-rag
-	echo "export PYTHONPATH=/usr/lib/python$(PYTHON3_VERSION)/site-packages" >> debian/local-rag/usr/local/bin/local-rag
-	echo 'cd /var/lib/local-rag' >> debian/local-rag/usr/local/bin/local-rag
-	echo 'exec python3 -m guide.cli "$$@"' >> debian/local-rag/usr/local/bin/local-rag
-	chmod +x debian/local-rag/usr/local/bin/local-rag
+	install -m 755 packaging/scripts/local-rag.sh debian/local-rag/usr/local/bin/local-rag
 
 override_dh_auto_test:
 	# Run tests if available

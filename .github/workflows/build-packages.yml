@@ -155,7 +155,7 @@ jobs:
           cp -r packaging/debian .
           
           # Update version in debian files
-          sed -i "s/0\.1\.0/${{ steps.version.outputs.version }}/g" debian/control || true
+          sed -i "s/0\.1\.0/${{ steps.version.outputs.version }}/g" debian/control
           
       - name: Install build dependencies
         run: |
@@ -183,14 +183,17 @@ jobs:
             pip3 install --break-system-packages llama-cpp-python==0.3.5
           fi
           
+          # Install remaining dependencies (all except llama-cpp-python which was handled above)
           pip3 install --break-system-packages \
-            fastapi==0.109.1 \
-            pydantic==2.5.0 \
-            uvicorn==0.24.0 \
-            chromadb==0.4.18 \
-            rich==13.9.2 \
-            sentence-transformers==2.2.2 \
-            PyYAML==6.0.1
+            "fastapi==0.109.1" \
+            "uvicorn[standard]==0.24.0" \
+            "chromadb==0.4.18" \
+            "sentence-transformers==2.2.2" \
+            "rich==13.9.2" \
+            "numpy<2.0" \
+            "pydantic==2.5.0" \
+            "pyyaml==6.0.1" \
+            "httpx==0.25.2"
           
       - name: Build source package
         run: |
@@ -256,13 +259,52 @@ jobs:
           echo "🔍 Scanning Python dependencies for vulnerabilities..."
           python3 -m pip_audit --format=json --output=security-reports/pip-audit-report.json
           
-          # Generate human-readable report
-          python3 -m pip_audit --desc > /tmp/audit_output.txt
+          # Generate human-readable report from JSON output instead of running pip_audit again
+          python3 -c "
+          import json, sys
+          try:
+              with open('security-reports/pip-audit-report.json') as f:
+                  data = json.load(f)
+              vulns = data.get('vulnerabilities', [])
+              if vulns:
+                  print('Security vulnerabilities found:')
+                  for v in vulns:
+                      pkg = v.get('package', {}).get('name', 'unknown')
+                      ver = v.get('package', {}).get('version', 'unknown')
+                      vuln_id = v.get('id', 'unknown')
+                      summary = v.get('summary', 'No description available')
+                      print(f'- {pkg} {ver}: {vuln_id} - {summary}')
+              else:
+                  print('No vulnerabilities found.')
+          except Exception as e:
+              print(f'Error parsing vulnerability report: {e}')
+              sys.exit(1)
+          " > /tmp/audit_output.txt
           
           # Run bandit security linter
           echo "🔍 Running Bandit security analysis..."
           python3 -m bandit -r src/guide/ -f json -o security-reports/bandit-report.json
-          python3 -m bandit -r src/guide/ -ll  # Low severity and above
+          
+          # Generate human-readable bandit output from JSON instead of running bandit again
+          python3 -c "
+          import json
+          try:
+              with open('security-reports/bandit-report.json') as f:
+                  data = json.load(f)
+              results = data.get('results', [])
+              if results:
+                  print('Bandit security analysis results:')
+                  for result in results:
+                      filename = result.get('filename', 'unknown')
+                      line_number = result.get('line_number', 'unknown')
+                      test_id = result.get('test_id', 'unknown')
+                      issue_text = result.get('issue_text', 'No description')
+                      print(f'- {filename}:{line_number} [{test_id}] {issue_text}')
+              else:
+                  print('No security issues found by Bandit.')
+          except Exception as e:
+              print(f'Error parsing Bandit report: {e}')
+          "
           
           # Check for critical vulnerabilities and fail if found
           # Focus on the most severe vulnerabilities that could lead to code execution
@@ -345,7 +387,7 @@ jobs:
             # Verify the package is properly installed
             dpkg -l | grep local-rag &&
             # Check if service file is installed
-            ls -la /lib/systemd/system/local-rag.service &&
+            ls -la /usr/lib/systemd/system/local-rag.service &&
             echo '✅ Package installation test completed successfully'
           "
           
