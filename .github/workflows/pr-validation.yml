@@ -52,7 +52,8 @@ jobs:
           # Check if any critical/high vulnerabilities were found
           # Focus on the most severe vulnerabilities that could lead to code execution
           # DoS vulnerabilities are noted but not considered build-blocking for this development tool
-          if python3 -m pip_audit --desc | grep -E "(code.execution|remote.code|privilege.escalation|sql.injection)" -i; then
+          CRITICAL_VULNS=$(python3 -m pip_audit --desc | grep -E "(code.execution|remote.code|privilege.escalation|sql.injection)" -i || echo "")
+          if [ -n "$CRITICAL_VULNS" ]; then
             echo "❌ Critical or High severity vulnerabilities found!"
             exit 1
           else
