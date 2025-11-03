@@ -226,15 +226,15 @@ jobs:
       - name: Security dependency scanning
         run: |
           # Install security scanning tools
-          python3 -m pip install --break-system-packages safety bandit
+          python3 -m pip install --break-system-packages pip-audit bandit
           
           # Create security reports directory
           mkdir -p security-reports
           
-          # Run safety scan for known vulnerabilities (updated from deprecated 'check' command)
+          # Run pip-audit for known vulnerabilities (replaces safety CLI)
           echo "🔍 Scanning Python dependencies for vulnerabilities..."
-          python3 -m safety scan --stage development --output json --save-as json security-reports/safety-report.json || true
-          python3 -m safety scan --stage development --short-report
+          python3 -m pip_audit --format=json --output=security-reports/pip-audit-report.json || true
+          python3 -m pip_audit --desc
           
           # Run bandit security linter
           echo "🔍 Running Bandit security analysis..."
@@ -242,7 +242,7 @@ jobs:
           python3 -m bandit -r src/guide/ -ll  # Low confidence, only show issues
           
           # Check for critical vulnerabilities and fail if found
-          if python3 -m safety scan --stage development --short-report | grep -i "CRITICAL\|HIGH"; then
+          if python3 -m pip_audit --desc | grep -i "CRITICAL\|HIGH"; then
             echo "❌ Critical or High severity vulnerabilities found!"
             echo "Build failed due to security requirements per NFR-012."
             exit 1
