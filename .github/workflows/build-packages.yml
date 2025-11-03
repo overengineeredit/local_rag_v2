@@ -103,7 +103,14 @@ jobs:
           # Set CMAKE_ARGS for llama-cpp-python cross-compilation
           # Disable GGML_NATIVE and set explicit ARM architecture to prevent mcpu=native errors
           # Solution from: https://github.com/ggml-org/llama.cpp/issues/11428
-          echo "CMAKE_ARGS=-DGGML_NATIVE=OFF -DGGML_CPU_ARM_ARCH=armv8-a -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_COMPILER=/usr/bin/aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/usr/bin/aarch64-linux-gnu-g++" >> $GITHUB_ENV
+          CMAKE_ARGS=""
+          CMAKE_ARGS="${CMAKE_ARGS} -DGGML_NATIVE=OFF"
+          CMAKE_ARGS="${CMAKE_ARGS} -DGGML_CPU_ARM_ARCH=armv8-a"
+          CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_SYSTEM_NAME=Linux"
+          CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_SYSTEM_PROCESSOR=aarch64"
+          CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_C_COMPILER=/usr/bin/aarch64-linux-gnu-gcc"
+          CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=/usr/bin/aarch64-linux-gnu-g++"
+          echo "CMAKE_ARGS=${CMAKE_ARGS}" >> $GITHUB_ENV
           
           # Note: Using native Debian cross-compilation instead of adding arm64 architecture
           # This avoids repository conflicts while providing full cross-build capability
@@ -177,7 +184,7 @@ jobs:
           fi
           
           pip3 install --break-system-packages \
-            fastapi==0.104.1 \
+            fastapi==0.109.1 \
             pydantic==2.5.0 \
             uvicorn==0.24.0 \
             chromadb==0.4.18 \
@@ -193,7 +200,16 @@ jobs:
       - name: Run test coverage validation
         run: |
           # Install remaining dev dependencies
-          python3 -m pip install --break-system-packages pytest-bdd==7.3.0 ruff==0.6.9 pytest-asyncio==0.21.1 pytest-mock pytest-xdist mypy types-requests types-PyYAML pytest-cov==4.0.0
+          python3 -m pip install --break-system-packages \
+            pytest-bdd==7.3.0 \
+            ruff==0.6.9 \
+            pytest-asyncio==0.21.1 \
+            pytest-mock \
+            pytest-xdist \
+            mypy \
+            types-requests \
+            types-PyYAML \
+            pytest-cov==4.0.0
           
           # Install package in editable mode
           python3 -m pip install --break-system-packages -e .
@@ -206,8 +222,15 @@ jobs:
             # For ARM64 cross-compilation, skip tests that require native llama-cpp-python runtime
             # The shared library compilation succeeds but runtime may have cross-compilation artifacts
             echo "⚠️  Skipping llama-cpp-python dependent tests for ARM64 cross-compilation"
+            SKIP_TESTS="not test_init_missing_dependency"
+            SKIP_TESTS="${SKIP_TESTS} and not test_init_model_loading_failure"
+            SKIP_TESTS="${SKIP_TESTS} and not TestLLMInterface"
+            SKIP_TESTS="${SKIP_TESTS} and not TestLLMGeneration"
+            SKIP_TESTS="${SKIP_TESTS} and not TestLLMUtilities"
+            SKIP_TESTS="${SKIP_TESTS} and not test_save_config_write_error"
+            SKIP_TESTS="${SKIP_TESTS} and not test_model_manager_metadata_loading_os_error"
             python3 -m pytest --cov=src/guide --cov-report=term --cov-report=xml --cov-fail-under=82 \
-              -k "not test_init_missing_dependency and not test_init_model_loading_failure and not TestLLMInterface and not TestLLMGeneration and not TestLLMUtilities and not test_save_config_write_error and not test_model_manager_metadata_loading_os_error" \
+              -k "${SKIP_TESTS}" \
               tests/
           else
             # For AMD64, skip the problematic test logic issues for now  
@@ -231,19 +254,20 @@ jobs:
           
           # Run pip-audit for known vulnerabilities (replaces safety CLI)
           echo "🔍 Scanning Python dependencies for vulnerabilities..."
-          python3 -m pip_audit --format=json --output=security-reports/pip-audit-report.json || true
-          python3 -m pip_audit --desc
+          python3 -m pip_audit --format=json --output=security-reports/pip-audit-report.json
+          
+          # Generate human-readable report
+          python3 -m pip_audit --desc > /tmp/audit_output.txt
           
           # Run bandit security linter
           echo "🔍 Running Bandit security analysis..."
-          python3 -m bandit -r src/guide/ -f json -o security-reports/bandit-report.json || true
-          python3 -m bandit -r src/guide/ -ll  # Low confidence, only show issues
+          python3 -m bandit -r src/guide/ -f json -o security-reports/bandit-report.json
+          python3 -m bandit -r src/guide/ -ll  # Low severity and above
           
           # Check for critical vulnerabilities and fail if found
           # Focus on the most severe vulnerabilities that could lead to code execution
           # DoS vulnerabilities are noted but not considered build-blocking for this development tool
           echo "Checking for critical vulnerability patterns..."
-          python3 -m pip_audit --desc > /tmp/audit_output.txt || true
           CRITICAL_VULNS=$(grep -E "(code.execution|remote.code|privilege.escalation|sql.injection)" /tmp/audit_output.txt -i || echo "")
           if [ -n "$CRITICAL_VULNS" ]; then
             echo "❌ Critical or High severity vulnerabilities found!"

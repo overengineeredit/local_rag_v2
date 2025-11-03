@@ -8,7 +8,7 @@ set -euo pipefail
 # Configuration
 CHECK_INTERVAL=30
 BRANCH="002-production-ci-cd"
-REPO_DIR="/home/peenaki/Develop/local_rag_v2"
+REPO_DIR="${REPO_DIR:-$(git rev-parse --show-toplevel)}"
 LOG_FILE="/tmp/ci-monitor-$(date +%Y%m%d-%H%M%S).log"
 
 # Colors for output

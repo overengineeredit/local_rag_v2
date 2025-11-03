@@ -21,11 +21,9 @@ export PYTHONPATH = src
 override_dh_auto_build:
 	# Build the Python package
 	python3 setup.py build
-	
 override_dh_auto_install:
 	# Install Python package
 	python3 setup.py install --root=debian/local-rag --prefix=/usr
-	
 	# Create application directories
 	mkdir -p debian/local-rag/var/lib/local-rag/{data,models}
 	mkdir -p debian/local-rag/var/log/local-rag
@@ -37,7 +35,6 @@ override_dh_auto_install:
 	install -m 644 config/local-rag.service debian/local-rag/usr/lib/systemd/system/
 	
 	# Create configuration directory structure
-	
 	# Install CLI wrapper script
 	echo '#!/bin/bash' > debian/local-rag/usr/local/bin/local-rag
 	echo "export PYTHONPATH=/usr/lib/python$(PYTHON3_VERSION)/site-packages" >> debian/local-rag/usr/local/bin/local-rag
@@ -51,7 +48,6 @@ override_dh_auto_test:
 
 override_dh_installdeb:
 	dh_installdeb
-	
 override_dh_compress:
 	# Don't compress documentation
 	dh_compress -X.py -X.md
