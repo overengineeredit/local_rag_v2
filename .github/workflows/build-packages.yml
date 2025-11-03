@@ -231,10 +231,10 @@ jobs:
           # Create security reports directory
           mkdir -p security-reports
           
-          # Run safety check for known vulnerabilities
+          # Run safety scan for known vulnerabilities (updated from deprecated 'check' command)
           echo "🔍 Scanning Python dependencies for vulnerabilities..."
-          python3 -m safety check --json --output security-reports/safety-report.json || true
-          python3 -m safety check --short-report
+          python3 -m safety scan --output json --save-as security-reports/safety-report.json || true
+          python3 -m safety scan --short-report
           
           # Run bandit security linter
           echo "🔍 Running Bandit security analysis..."
@@ -242,7 +242,7 @@ jobs:
           python3 -m bandit -r src/guide/ -ll  # Low confidence, only show issues
           
           # Check for critical vulnerabilities and fail if found
-          if python3 -m safety check --short-report | grep -i "CRITICAL\|HIGH"; then
+          if python3 -m safety scan --short-report | grep -i "CRITICAL\|HIGH"; then
             echo "❌ Critical or High severity vulnerabilities found!"
             echo "Build failed due to security requirements per NFR-012."
             exit 1
