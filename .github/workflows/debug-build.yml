@@ -1,0 +1,73 @@
+name: Debug Build Issues
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    name: Debug Build Issues
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Check directory structure
+        run: |
+          echo "=== Repository structure ==="
+          find . -name "*.py" | head -20
+          echo ""
+          echo "=== Source directory ==="
+          ls -la src/
+          echo ""
+          echo "=== Tests directory ==="
+          ls -la tests/
+          echo ""
+          echo "=== Pyproject.toml ==="
+          cat pyproject.toml
+          
+      - name: Install dependencies step by step
+        run: |
+          echo "=== Upgrading pip ==="
+          python3 -m pip install --upgrade pip
+          
+          echo "=== Installing basic packages ==="
+          python3 -m pip install setuptools wheel
+          
+          echo "=== Installing test packages ==="
+          python3 -m pip install pytest pytest-cov
+          
+          echo "=== Installing main dependencies one by one ==="
+          python3 -m pip install fastapi==0.104.1
+          python3 -m pip install uvicorn[standard]==0.24.0
+          python3 -m pip install "numpy<2.0"
+          python3 -m pip install pydantic==2.5.0
+          python3 -m pip install pyyaml==6.0.1
+          python3 -m pip install httpx==0.25.2
+          python3 -m pip install rich==13.9.2
+          
+          echo "=== Installing package in editable mode ==="
+          python3 -m pip install -e .
+          
+          echo "=== Verifying installation ==="
+          python3 -c "import guide; print('Package installed successfully')"
+          
+      - name: Run tests with verbose output
+        run: |
+          echo "=== Running tests with verbose output ==="
+          python3 -m pytest -v --cov=src/guide --cov-report=term
+          
+      - name: Check what failed (if anything)
+        if: failure()
+        run: |
+          echo "=== Something failed, let's see what ==="
+          python3 -c "import sys; print('Python version:', sys.version)"
+          python3 -m pip list
+          ls -la

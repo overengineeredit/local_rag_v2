@@ -2,7 +2,7 @@
 
 **Feature**: 002-production-ci-cd  
 **Created**: 2025-11-01  
-**Prerequisites**: Completed 001-local-rag-mvp feature  
+**Prerequisites**: Completed 001-local-rag-mvp feature
 
 ## Overview
 
@@ -27,16 +27,19 @@ Before starting, ensure you have:
 #### Day 1-2: Core Build Workflow
 
 1. **Create Build Workflow**:
+
    ```bash
    mkdir -p .github/workflows
    # Create build-packages.yml with matrix strategy
    ```
 
 2. **Key Components to Implement**:
-   - Build matrix for `[ubuntu-latest]` runner with `strategy.matrix.arch: [amd64, arm64]`
-   - QEMU setup for ARM64 cross-compilation
-   - dpkg-buildpackage execution with architecture flags
-   - Basic artifact upload
+
+   - Debian 12 container environment with `container: image: debian:12` and `options: --privileged`
+   - Build matrix with `strategy.matrix.arch: [amd64, arm64]` on containerized runners
+   - QEMU setup for ARM64 cross-compilation within Debian environment
+   - dpkg-buildpackage execution with native Debian toolchain and architecture flags
+   - Basic artifact upload with container-based validation
 
 3. **Validation**:
    - Packages build without errors
@@ -46,14 +49,16 @@ Before starting, ensure you have:
 #### Day 3-5: Package Validation
 
 1. **Implement lintian Validation**:
+
    ```bash
-   # Add to workflow
-   sudo apt-get install lintian
+   # Add to workflow (within Debian container)
+   apt-get install -y lintian
    lintian --check *.deb
    ```
 
 2. **Basic Installation Testing**:
-   - Container-based clean environment testing
+
+   - Debian container-based clean environment testing
    - Service startup verification
    - Health check validation
 
@@ -68,6 +73,8 @@ Before starting, ensure you have:
 
 #### Quick Local Build Script
 
+**Note**: This script simulates the Debian container environment used in CI/CD. For production CI/CD, all builds run in Debian 12 containers per ADR-005.
+
 Create `scripts/build-local.sh`:
 
 ```bash
@@ -81,8 +88,8 @@ echo "Building for architecture: $ARCH"
 # Setup cross-compilation if needed
 if [ "$ARCH" = "arm64" ] && [ "$(uname -m)" = "x86_64" ]; then
     echo "Setting up QEMU for cross-compilation..."
-    sudo apt-get update
-    sudo apt-get install -y qemu-user-static binfmt-support
+    apt-get update
+    apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 fi
 
 # Build package
@@ -106,12 +113,14 @@ echo "Build completed successfully for $ARCH"
 If release automation is needed immediately:
 
 1. **Create `.github/workflows/release.yml`**:
+
    - Trigger on tag creation (`refs/tags/v*`)
    - Build packages using existing workflow
    - Create GitHub release with packages as assets
 
 2. **Version Tagging Strategy**:
-   ```bash
+
+   ``` bash
    git tag -a v1.0.0 -m "Release version 1.0.0"
    git push origin v1.0.0
    ```
@@ -119,12 +128,14 @@ If release automation is needed immediately:
 ## Fast Implementation Checklist
 
 ### Week 1 Essentials
+
 - [ ] **T036**: Basic GitHub Actions build workflow operational
 - [ ] **T037**: Cross-compilation working for ARM64
 - [ ] **T038**: Package validation with lintian passing
 - [ ] **T039**: Local build script available for developers
 
 ### Week 2 Production-Ready (Optional)
+
 - [ ] **T040**: Release workflow for tagged versions
 - [ ] **T041**: GPG signing (can be added later)
 - [ ] **T042**: Basic installation documentation
@@ -162,9 +173,9 @@ apt update && apt install -y ./local-rag_*.deb
 systemctl --user start local-rag
 
 # ARM64 testing (on actual Pi5)
-sudo apt install -y ./local-rag_*arm64.deb
-sudo systemctl start local-rag
-sudo systemctl status local-rag
+apt install -y ./local-rag_*arm64.deb
+systemctl start local-rag
+systemctl status local-rag
 ```
 
 ### Verify Package Quality
@@ -173,7 +184,7 @@ sudo systemctl status local-rag
 # Check package contents
 dpkg -c local-rag_*.deb
 
-# Validate policy compliance  
+# Validate policy compliance
 lintian local-rag_*.deb
 
 # Test service functionality
@@ -184,12 +195,14 @@ curl -X POST http://localhost:8000/api/query \
 
 ## Success Criteria
 
-**Minimum Viable**: 
+**Minimum Viable**:
+
 - Packages build automatically for both architectures
-- Packages install successfully on target systems  
+- Packages install successfully on target systems
 - Service starts and basic functionality works
 
 **Production Ready**:
+
 - All builds pass validation without errors
 - Local development workflow established
 - Release automation functional (if needed)
@@ -197,7 +210,7 @@ curl -X POST http://localhost:8000/api/query \
 ## Next Steps After Quick Start
 
 1. **Enhance Testing**: Implement comprehensive test suite (T043)
-2. **Add Monitoring**: Set up build performance tracking (T044)  
+2. **Add Monitoring**: Set up build performance tracking (T044)
 3. **Improve Documentation**: Complete user and developer guides (T042, T046)
 4. **Security Hardening**: Add GPG signing and security scanning (T041)
 
@@ -209,7 +222,7 @@ curl -X POST http://localhost:8000/api/query \
 # Check GitHub Actions logs
 # Look for common patterns:
 # - Missing dependencies
-# - Architecture-specific issues  
+# - Architecture-specific issues
 # - Timeout problems
 # - Permission errors
 

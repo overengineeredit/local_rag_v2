@@ -1,0 +1,17 @@
+# Debian package installation file for local-rag
+# This file specifies which files to install and where
+
+# Python package files
+src/guide/* usr/lib/python$(PYTHON3_VERSION)/site-packages/guide/
+
+# Configuration files
+config/local-rag.service usr/lib/systemd/system/
+
+# Documentation
+README.md usr/share/doc/local-rag/
+LICENSE usr/share/doc/local-rag/
+
+# Application directories (created by rules file)
+# /var/lib/local-rag/
+# /var/log/local-rag/
+# /etc/local-rag/

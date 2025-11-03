@@ -222,6 +222,13 @@ models/*.bin
 *.gguf
 *.bin
 
+# Security scanning artifacts and CI/CD reports
+security-reports/
+pip-audit-report.json
+bandit-report.json
+*-audit-*.json
+*-security-*.json
+
 # Local data and caches
 data/
 cache/

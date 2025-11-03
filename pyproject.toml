@@ -10,10 +10,10 @@ authors = [{name = "Peenak Inamdar", email = "peenaki@bluequack.com"}]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi==0.104.1",
+    "fastapi==0.109.1",
     "uvicorn[standard]==0.24.0",
     "chromadb==0.4.18",
-    "llama-cpp-python==0.2.72",
+    "llama-cpp-python==0.3.5",
     "sentence-transformers==2.2.2",
     "rich==13.9.2",
     "numpy<2.0",
@@ -21,6 +21,9 @@ dependencies = [
     "pyyaml==6.0.1",
     "httpx==0.25.2",
 ]
+
+[project.scripts]
+local-rag = "guide.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -34,6 +37,8 @@ dev = [
     "mypy",
     "types-requests",
     "types-PyYAML",
+    "bandit",
+    "pip-audit",
 ]
 
 [tool.setuptools.packages.find]

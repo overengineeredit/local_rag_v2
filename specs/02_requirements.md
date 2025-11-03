@@ -35,6 +35,31 @@
 - **Knowledge base management**: CLI commands for reset and content operations (all via API).
 - **Cross-platform**: Support ARM64 (Pi5) and AMD64 architectures.
 
+## CI/CD and Security Requirements
+
+### Build and Deployment
+
+- **Automated Package Building**: GitHub Actions workflows for APT package creation
+- **Cross-Platform Support**: Automated builds for both ARM64 and AMD64 architectures
+- **Package Validation**: Automated lintian validation and installation testing
+- **Manual Build Control**: workflow_dispatch for manual builds with architecture selection
+- **Artifact Management**: Build artifacts stored with appropriate retention policies
+
+### Security Scanning
+
+- **Dependency Vulnerability Detection**: Automated scanning of Python dependencies for security vulnerabilities
+- **Critical Vulnerability Blocking**: Build failures for vulnerabilities enabling code execution, privilege escalation, or SQL injection
+- **Development Package Exclusion**: Security scans exclude local/editable packages during development
+- **Security Reporting**: Vulnerability reports generated and stored as build artifacts
+- **Tool Selection**: Use pip-audit (PyPA official tool) for reliable CI/CD integration
+
+### Workflow Optimization
+
+- **Branch-Specific Automation**: Different workflows for development vs production branches
+- **Fast Development Feedback**: Feature branch validation completes in 2-4 minutes
+- **Resource Efficiency**: Heavy builds (cross-compilation, packaging) only run on production branch
+- **Development Validation**: Focus on code quality, security, and testing without unnecessary builds
+
 ## Acceptance Tests
 
 - **Content ingestion**: Load text files, URLs, and HTML into vector database.

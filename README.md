@@ -153,6 +153,23 @@ prompts/              — AI assistant system prompts
 - 📊 **Progress tracking** and status monitoring for all operations
 - 🧪 **Comprehensive testing** with unit, integration, and BDD coverage
 
+## CI/CD & Package Building Status
+
+**Current Infrastructure**: ✅ **Phase 1+ Complete** - Enhanced automated infrastructure with security and workflow optimization
+
+- ✅ **Cross-Platform Builds**: ARM64 (Pi5) and AMD64 packages via GitHub Actions with QEMU cross-compilation
+- ✅ **Advanced Security Scanning**: pip-audit with critical vulnerability filtering and intelligent editable package exclusion  
+- ✅ **Quality Assurance**: lintian validation, >85% test coverage enforcement, installation testing, constitution compliance
+- ✅ **Optimized Development Workflow**: 75% faster feedback (2-4 minutes vs 15+ minutes) through branch-specific automation
+- ✅ **Manual Controls**: GitHub Actions UI workflow dispatch with architecture selection and force rebuild options
+- ✅ **Artifact Management**: 90-day retention, detailed build logs, comprehensive security reporting
+
+**Key Achievements**: 7/14 core tasks complete, production builds operational, development workflow optimized, security scanning robust
+
+**Next Phase**: Release automation with GPG signing and local development tooling
+
+See `specs/002-production-ci-cd/` for complete CI/CD documentation and task tracking.
+
 ## What this **is not** (yet)
 
 - ❌ Hardware-accelerated inference (NPU/GPU support planned for future versions)

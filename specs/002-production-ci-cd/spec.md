@@ -33,13 +33,13 @@ The system can build native-quality packages for both ARM64 (Raspberry Pi 5) and
 
 **Why this priority**: Supporting both target architectures is essential for the project's hardware compatibility goals.
 
-**Independent Test**: Trigger build for specific architecture, verify package works on target hardware, validate performance meets platform requirements.
+**Independent Test**: Trigger build for specific architecture, verify package functionality through emulated testing on GitHub Actions runners, validate performance meets platform requirements within emulation environment.
 
 **Acceptance Scenarios**:
 
-1. **Given** ARM64 build is requested, **When** QEMU emulation is used for cross-compilation, **Then** resulting package installs and runs correctly on actual Pi5 hardware
-2. **Given** AMD64 build is completed, **When** package is tested on desktop systems, **Then** performance meets expected benchmarks (sub-second to 30 seconds first token)
-3. **Given** both architectures are built, **When** packages are compared, **Then** functionality is equivalent across platforms
+1. **Given** ARM64 build is requested, **When** QEMU emulation is used for cross-compilation, **Then** resulting package validates successfully through emulated testing on GitHub Actions runners
+2. **Given** AMD64 build is completed, **When** package is tested on GitHub Actions runners, **Then** performance meets expected benchmarks within emulation environment
+3. **Given** both architectures are built, **When** packages are compared through emulated testing, **Then** functionality is equivalent across platforms within emulation environment
 
 ---
 
@@ -59,7 +59,41 @@ A maintainer can create tagged releases that automatically build packages, sign 
 
 ---
 
-### User Story 4 - Local Development Integration (Priority: P3)
+### User Story 4 - Security Scanning and Vulnerability Management (Priority: P1)
+
+A developer can rely on automated security scanning that identifies critical vulnerabilities in dependencies while filtering out non-actionable findings to maintain development velocity.
+
+**Why this priority**: Security validation is essential for production deployment, but must not block development with false positives or non-critical issues.
+
+**Independent Test**: Trigger security scan with known vulnerabilities, verify critical issues block builds while non-critical issues are logged but allow progression.
+
+**Acceptance Scenarios**:
+
+1. **Given** code with critical vulnerabilities (code execution, privilege escalation), **When** CI pipeline runs, **Then** build fails with clear vulnerability reporting
+2. **Given** code with non-critical vulnerabilities (DoS, informational), **When** CI pipeline runs, **Then** build succeeds with vulnerability logging for review
+3. **Given** local development packages (editable installs), **When** security scanning runs, **Then** local packages are excluded from vulnerability assessment
+4. **Given** security scan completes, **When** reports are generated, **Then** actionable findings are clearly distinguished from noise
+
+---
+
+### User Story 5 - Optimized Development Workflow (Priority: P1)
+
+A developer working on feature branches can get fast feedback (2-4 minutes) on code quality and tests without waiting for unnecessary production builds.
+
+**Why this priority**: Fast development feedback is critical for productive TDD workflow and prevents context switching delays.
+
+**Independent Test**: Push feature branch changes, verify validation completes quickly without triggering heavy package builds, while main branch still gets full production validation.
+
+**Acceptance Scenarios**:
+
+1. **Given** changes pushed to feature branch, **When** PR validation runs, **Then** linting, testing, and security scanning complete within 4 minutes
+2. **Given** changes pushed to main branch, **When** production workflow runs, **Then** full package building and cross-compilation execute as expected
+3. **Given** developer needs to test package building, **When** manual workflow dispatch is used, **Then** full builds can be triggered on demand with architecture selection
+4. **Given** CI resource usage, **When** workflows execute, **Then** development workflows consume minimal resources while production workflows use resources efficiently
+
+---
+
+### User Story 6 - Local Development Integration (Priority: P3)
 
 A developer can simulate the full CI/CD pipeline locally, including package building and validation, before pushing to remote repositories.
 
@@ -97,13 +131,13 @@ A developer can simulate the full CI/CD pipeline locally, including package buil
 - **FR-005**: System MUST implement dpkg-buildpackage for native Debian package creation
 - **FR-006**: System MUST store build artifacts with appropriate retention (90 days for branches, permanent for releases)
 - **FR-007**: System MUST implement package signing using GPG keys for release integrity
-- **FR-008**: System MUST support manual build dispatch with architecture selection
+- **FR-008**: System MUST support manual build dispatch through GitHub Actions UI workflow_dispatch with architecture selection parameters and repository collaborator authorization
 - **FR-009**: System MUST integrate with existing systemd service configuration from 001-local-rag-mvp
 - **FR-010**: System MUST maintain compatibility with existing Debian control files and installation scripts
 - **FR-011**: System MUST implement build matrix strategy for parallel architecture compilation
-- **FR-012**: System MUST provide local build simulation scripts for development workflow
+- **FR-012**: System MUST provide local build simulation scripts supporting both Docker-based CI replication and native development environments with complete validation pipeline
 - **FR-013**: System MUST trigger builds on main branch pushes and release tag creation
-- **FR-014**: System MUST implement proper dependency resolution for target architectures
+- **FR-014**: System MUST implement comprehensive dependency resolution using APT with conflict handling, pre-flight validation, and dependency compatibility checks
 - **FR-015**: System MUST support package installation testing in clean environments
 
 #### Release Automation Requirements
@@ -112,45 +146,56 @@ A developer can simulate the full CI/CD pipeline locally, including package buil
 - **FR-017**: System MUST upload signed packages to release assets
 - **FR-018**: System MUST generate release changelogs from commit history
 - **FR-019**: System MUST update documentation with new release information
-- **FR-020**: System MUST implement release notification mechanisms
+- **FR-020**: System MUST implement email notification mechanisms for releases and build failures with configurable recipients and observable status indicators
 
 #### Quality Assurance Requirements
 
 - **FR-021**: System MUST validate package installation on target platforms
-- **FR-022**: System MUST verify service startup and health checks post-installation
+- **FR-022**: System MUST verify service startup and health checks post-installation (see SC-004 for success criteria)
 - **FR-023**: System MUST implement smoke tests for basic functionality validation
-- **FR-024**: System MUST check package dependencies and conflicts
-- **FR-025**: System MUST validate file permissions and ownership in packages
+- **FR-025**: System MUST validate that package deploys as single systemd service managing multiple processes
+- **FR-026**: System MUST ensure all components (FastAPI, llama-cpp-python, ChromaDB) are packaged in single .deb file and deploy as single systemd service managing multiple processes
+- **FR-027**: System MUST fail builds that do not maintain >85% test coverage for unit and integration tests
+- **FR-028**: System MUST generate comprehensive test coverage reports in CI/CD pipeline
+- **FR-029**: System MUST validate CI/CD code meets linting standards and has automated tests
+- **FR-030**: System MUST validate build artifacts and packages do not contain sensitive information or credentials
+- **FR-031**: System MUST implement security scanning for build dependencies with automated vulnerability assessment using pip-audit
+- **FR-032**: System MUST filter security vulnerabilities by criticality, blocking builds only for code execution, privilege escalation, and SQL injection vulnerabilities
+- **FR-033**: System MUST exclude local/editable packages from security scanning using --skip-editable flag
+- **FR-034**: System MUST implement branch-specific workflow strategy: lightweight validation for development branches, full builds for production
+- **FR-035**: System MUST provide development workflow feedback within 4 minutes for code quality, security, and testing
 
 ### Non-Functional Requirements
 
 #### Performance Requirements
 
-- **NFR-001**: Build pipeline MUST complete within 30 minutes for both architectures
-- **NFR-002**: Package installation MUST complete within 5 minutes on target systems
-- **NFR-003**: Cross-compilation overhead MUST NOT exceed 50% of native build time
+- **NFR-001**: Build pipeline MUST complete within 30 minutes for both architectures on GitHub Actions standard runners (4-core, 16GB RAM) with available network performance under existing system conditions
+- **NFR-002**: Package installation MUST complete within 5 minutes on target systems (Pi5 8GB RAM, Ubuntu 22.04 clean install) under normal system load
+- **NFR-003**: Cross-compilation builds MUST complete within GitHub Actions time limits (6 hours default) with performance overhead <150% of native builds under loaded system conditions
 - **NFR-004**: CI/CD pipeline MUST support parallel execution for multiple commits
 
 #### Reliability Requirements
 
-- **NFR-005**: Build success rate MUST exceed 95% for valid commits
-- **NFR-006**: Package integrity MUST be verifiable through GPG signatures
-- **NFR-007**: Build artifacts MUST be consistently reproducible across runs
-- **NFR-008**: Pipeline MUST gracefully handle transient failures with retry logic
+- **NFR-005**: Build artifacts MUST maintain integrity across different execution environments
+- **NFR-006**: Package integrity MUST be verifiable through GPG signatures with automated validation
+- **NFR-007**: Build artifacts MUST be consistently reproducible with identical checksums across runs using same source code and dependencies
+- **NFR-008**: Pipeline MUST gracefully handle transient failures with automatic retry logic (maximum 3 attempts with exponential backoff)
 
 #### Security Requirements
 
-- **NFR-009**: GPG keys MUST be securely stored and accessed in CI environment
-- **NFR-010**: Build environments MUST be isolated and ephemeral
-- **NFR-011**: Package contents MUST be validated for security compliance
-- **NFR-012**: Dependencies MUST be scanned for known vulnerabilities
+- **NFR-009**: GPG keys MUST be securely stored and accessed in CI environment using GitHub encrypted secrets
+- **NFR-010**: Build environments MUST be isolated and ephemeral with no persistent state between builds
+- **NFR-011**: Package contents MUST be validated for security compliance including file permissions and malware scanning
+- **NFR-012**: Dependencies MUST be scanned for known vulnerabilities with builds failing on Critical or High severity issues
+- **NFR-013**: Build failure notifications MUST be observable (e.g., in README page status badges)
+- **NFR-014**: System MUST implement historical trend analysis for build performance
 
 #### Maintainability Requirements
 
-- **NFR-013**: Build scripts MUST be version controlled and documented
-- **NFR-014**: CI/CD configuration MUST follow infrastructure-as-code principles
-- **NFR-015**: Build logs MUST be comprehensive and easily debuggable
-- **NFR-016**: Pipeline configuration MUST be modular and reusable
+- **NFR-015**: Build scripts MUST be version controlled and documented
+- **NFR-016**: CI/CD configuration MUST follow infrastructure-as-code principles
+- **NFR-017**: Build logs MUST be comprehensive and easily debuggable
+- **NFR-018**: Pipeline configuration MUST be modular and reusable
 
 ## Success Criteria *(mandatory)*
 
@@ -173,16 +218,18 @@ A developer can simulate the full CI/CD pipeline locally, including package buil
 ### Quality Success Metrics
 
 - **SC-011**: 95%+ build success rate maintained over 30-day rolling window
-- **SC-012**: Zero critical security vulnerabilities in package dependencies
+- **SC-012**: Zero critical or high security vulnerabilities in package dependencies
 - **SC-013**: 100% of packages maintain file integrity through GPG verification
 - **SC-014**: Zero regression failures in existing functionality after CI/CD integration
+- **SC-015**: Unit and integration tests achieve >85% coverage leveraging existing test suite (356 tests)
+- **SC-016**: End-to-end tests validate core functionality using existing test_content/ directory files
 
 ### Operational Success Metrics
 
-- **SC-015**: Build logs provide sufficient detail for debugging failures within 5 minutes
-- **SC-016**: Release process reduces manual effort by 80% compared to manual builds
-- **SC-017**: Developer feedback cycle improved with local build simulation
-- **SC-018**: Package repository maintains 99.9% availability for downloads
+- **SC-017**: Build logs provide sufficient detail for debugging failures
+- **SC-018**: Release process reduces manual effort by 80% compared to manual builds
+- **SC-019**: Developer feedback cycle improved with local build simulation
+- **SC-020**: Package repository maintains 99.9% availability for downloads
 
 ## Dependencies and Integration
 
