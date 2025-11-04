@@ -217,6 +217,11 @@ jobs:
           # Install package in editable mode
           python3 -m pip install --break-system-packages -e .
           
+          # Force upgrade critical packages to fix known vulnerabilities
+          python3 -m pip install --break-system-packages --upgrade \
+            "fastapi==0.109.1" \
+            "llama-cpp-python==0.3.5"
+          
           # Verify installation
           python3 -c "import guide; print('Package installed successfully')"
           
