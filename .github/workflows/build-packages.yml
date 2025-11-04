@@ -326,15 +326,28 @@ jobs:
           cat /tmp/audit_output.txt
           echo "============================="
           
-          # Check for critical patterns
+          # Check for critical patterns - with detailed debugging
           # Focus on immediate threats: remote code execution, privilege escalation, SQL injection
           # Exclude pip tarfile extraction issues as they require local malicious packages
+          echo "🔍 Checking for critical vulnerability patterns..."
+          echo "Pattern: (remote.*code.*execution|privilege.*escalation|sql.*injection)"
+          echo "Exclusions: tarfile|extraction|pip.*install"
+          
+          # First show what would match the pattern before exclusions
+          echo "--- Vulnerabilities matching critical pattern (before exclusions) ---"
+          grep -E "(remote.*code.*execution|privilege.*escalation|sql.*injection)" /tmp/audit_output.txt -i || echo "None found"
+          echo "--- End critical pattern matches ---"
+          
+          # Now apply exclusions
           CRITICAL_VULNS=$(grep -E "(remote.*code.*execution|privilege.*escalation|sql.*injection)" /tmp/audit_output.txt -i | grep -v "tarfile\|extraction\|pip.*install" || echo "")
           if [ -n "$CRITICAL_VULNS" ]; then
-            echo "❌ Critical or High severity vulnerabilities found!"
+            echo "❌ Critical or High severity vulnerabilities found after exclusions!"
             echo "Build failed due to security requirements per NFR-012."
             echo "Critical vulnerabilities:"
             echo "$CRITICAL_VULNS"
+            echo ""
+            echo "🔍 Debug: Full vulnerability list from pip-audit:"
+            cat /tmp/audit_output.txt
             exit 1
           else
             echo "✅ No critical vulnerabilities detected in dependencies"
