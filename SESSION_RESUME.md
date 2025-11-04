@@ -1,3 +1,59 @@
+## Session resume — 2025-11-04
+
+This file captures where we are and the minimal command(s) to run on your desktop to pick up work.
+
+### Where we left off
+
+- Repository: `local_rag_v2`
+- Current branch: `fix/security-scanning-build-failure`
+- Active pull request: https://github.com/overengineeredit/local_rag_v2/pull/19
+
+- What I did so far (local):
+  - Created/activated project `.venv` and installed minimal security tools: `pip-audit` and `bandit`.
+  - Ran `pip-audit` which found one notable vulnerability in the local environment:
+    - `pip` 25.2: GHSA-4xh5-x5gv-qwph (CVE-2025-8869) — tarfile extraction path can allow file overwrite; fix available in `pip` 25.3.
+  - Examined CI workflow filtering in `.github/workflows/build-packages.yml`; it attempts to exclude `tarfile`/`extraction` issues but this `pip` issue is flagged as critical because it can lead to file overwrite / escalate to code execution.
+  - Discovered a blocker for full dev install: local Python is `3.13.7` and `torch`/`sentence-transformers` in `pyproject.toml` don't have wheels for 3.13 — `pip install -e '.[dev]'` fails. Recommendation: use Python 3.11 for full dev install.
+
+### Essence of the command I want you to run on desktop
+
+To reproduce the security finding and save a JSON report (this is what CI runs):
+
+```bash
+source .venv/bin/activate
+pip-audit --format=json --output=security-reports/pip-audit-local.json
+```
+
+Quick view of the report:
+
+```bash
+cat security-reports/pip-audit-local.json | python3 -m json.tool
+```
+
+If you want to proceed with a full dev install (likely required to run tests & reproduce CI failures), create a venv with Python 3.11 and then install dev deps:
+
+```bash
+# ensure python3.11 is installed on your desktop
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e '.[dev]'
+```
+
+Notes:
+- The CI workflow filters critical vulnerabilities with this grep line in `.github/workflows/build-packages.yml`:
+  - `grep -E "(remote.*code.*execution|privilege.*escalation|sql.*injection)" /tmp/audit_output.txt -i | grep -v "tarfile\|extraction\|pip.*install"`
+  - That filter may need refinement because the pip tarfile vulnerability can be considered critical.
+- Short-term mitigation: upgrade `pip` to 25.3 in the CI runner to close the reported GHSA (or adjust filtering/acceptance policy with a clear justification).
+
+### Next steps (if you continue on desktop)
+
+1. Run the pip-audit command above and attach `security-reports/pip-audit-local.json` to the PR or paste the relevant entries here.
+2. If you need to run tests or install all dev deps, create the Python 3.11 venv and run the full install.
+3. If you want, I can prepare a small CI tweak (safe) to upgrade pip in the job before running pip-audit, or refine the vulnerability filter and add a brief justification.
+
+---
+Updated while on `fix/security-scanning-build-failure` — pick up on desktop and run the first command to reproduce the pip-audit result.
 # Session Resume: Security Scanning Build Failure Fix
 
 **Date**: November 3, 2025  
