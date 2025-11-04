@@ -214,13 +214,26 @@ jobs:
             types-PyYAML \
             pytest-cov==4.0.0
           
+          # Force upgrade critical packages BEFORE installing our package to avoid conflicts
+          echo "🔧 Upgrading vulnerable packages to patched versions..."
+          python3 -m pip install --break-system-packages --upgrade \
+            "fastapi==0.109.1" \
+            "llama-cpp-python==0.3.5" \
+            "starlette>=0.49.1" \
+            "urllib3>=2.5.0"
+          
           # Install package in editable mode
           python3 -m pip install --break-system-packages -e .
           
-          # Force upgrade critical packages to fix known vulnerabilities
-          python3 -m pip install --break-system-packages --upgrade \
-            "fastapi==0.109.1" \
-            "llama-cpp-python==0.3.5"
+          # Verify critical packages are at correct versions
+          echo "🔍 Verifying package versions after upgrade:"
+          python3 -c "
+          import fastapi, llama_cpp, starlette, urllib3
+          print(f'fastapi: {fastapi.__version__}')
+          print(f'llama-cpp-python: {llama_cpp.__version__}')  
+          print(f'starlette: {starlette.__version__}')
+          print(f'urllib3: {urllib3.__version__}')
+          "
           
           # Verify installation
           python3 -c "import guide; print('Package installed successfully')"
